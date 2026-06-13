@@ -43,21 +43,53 @@
 import { useState, useCallback, useMemo } from "react";
 
 import {
+  addBprStage,
+  addBprTask,
+  addTaskStep,
+  saveStepField,
+  saveStepMaterials,
+  saveTaskArchived,
+  saveTaskProfileField,
+  saveTaskStage,
+} from "@/app/actions/workspace-data";
+import {
+  compareBprStages,
+  findBprStageByName,
+  nextBprStageSortOrder,
+} from "@/lib/bpr-stages";
+import {
   type Profile,
-  type AxisKey,
-  type StageKey,
   type Department,
   type Candidate,
+  type BprStage,
   type Group,
   type SelectedDetail,
-  STAGE_ORDER,
+  type ContextNote,
+  type ManagementPolicy,
+  type Material,
+  type System,
+  type BizSysLink,
 } from "@/lib/schema";
+import { deriveTaskJudgments } from "@/lib/computed/judgments";
+import {
+  buildBizSystemsMap,
+  resolveTaskSystems,
+} from "@/lib/computed/systems";
 import {
   createMinimalProfile,
   createMinimalScorecard,
 } from "@/lib/data/factories";
-import { getCandidateAverageScore } from "@/lib/computed/scorecards";
-import { ARCHIVED_GROUP_LABEL, STAGE_LABELS } from "@/lib/labels";
+import { ARCHIVED_GROUP_LABEL } from "@/lib/labels";
+
+const PERSISTED_PROFILE_FIELDS = [
+  "name",
+  "address",
+  "source",
+  "recruiter",
+  "careerText",
+  "motivationFull",
+  "availableStartDate",
+] as const satisfies readonly (keyof Profile)[];
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { GlobalHeader } from "@/components/workspace/GlobalHeader";
 import { PositionPane } from "@/components/workspace/PositionPane";
@@ -94,18 +126,31 @@ type EditableScorecardKey =
 type WorkspaceProps = {
   initialDepartments: Department[];
   initialCandidates: Candidate[];
+  initialBprStages: BprStage[];
   workspace: { name: string; icon: string };
+  contextNotes: ContextNote[];
+  managementPolicies: ManagementPolicy[];
+  systems: System[];
+  bizSysLinks: BizSysLink[];
 };
 
 export function Workspace({
   initialDepartments,
   initialCandidates,
+  initialBprStages,
   workspace,
+  contextNotes,
+  managementPolicies,
+  systems,
+  bizSysLinks,
 }: WorkspaceProps) {
   const [departments, setDepartments] =
     useState<Department[]>(initialDepartments);
   const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
-  const [selectedCandidateId, setSelectedCandidateId] = useState<string>("c2");
+  const [bprStages, setBprStages] = useState<BprStage[]>(initialBprStages);
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string>(
+    initialCandidates[0]?.id ?? "",
+  );
   const [selectedDetail, setSelectedDetail] = useState<SelectedDetail>(null);
   const [scrollAnchor, setScrollAnchor] = useState<string | null>(null);
   // ユーザーが手動で Pane 4 を畳んだか。ステージ選択は保持しつつ畳む用途。
@@ -134,9 +179,22 @@ export function Workspace({
       setCandidates((prev) =>
         prev.map((c) => {
           if (c.id !== selectedCandidateId) return c;
+          const prevProfile = c.profile;
           const next =
             typeof action === "function" ? action(c.profile) : action;
-          return { ...c, profile: next };
+
+          for (const key of PERSISTED_PROFILE_FIELDS) {
+            if (prevProfile[key] !== next[key]) {
+              void saveTaskProfileField(selectedCandidateId, key, next[key]);
+            }
+          }
+
+          return {
+            ...c,
+            profile: next,
+            owner: next.recruiter,
+            bizId: next.source,
+          };
         }),
       );
     },
@@ -145,15 +203,30 @@ export function Workspace({
 
   const openDetail = useCallback(
     (next: SelectedDetail, anchor?: string) => {
-      if (next?.type === "stage") {
+      if (next?.type === "step") {
         setCandidates((prev) =>
           prev.map((c) => {
             if (c.id !== selectedCandidateId) return c;
-            if (c.scorecards.some((s) => s.stage === next.stage)) return c;
-            return {
-              ...c,
-              scorecards: [...c.scorecards, createMinimalScorecard(next.stage)],
-            };
+
+            const existingStep = c.scorecards.find((s) => s.id === next.stepId);
+            const scorecards = existingStep
+              ? c.scorecards
+              : [
+                  ...c.scorecards,
+                  createMinimalScorecard(next.stepId, "新しいステップ"),
+                ];
+            const stepLabel = existingStep?.label ?? "新しいステップ";
+            const matchedStage = findBprStageByName(bprStages, stepLabel);
+
+            if (matchedStage && c.stage !== matchedStage.id) {
+              void saveTaskStage(c.id, matchedStage.id, next.stepId);
+              return { ...c, scorecards, stage: matchedStage.id };
+            }
+
+            if (!existingStep) {
+              return { ...c, scorecards };
+            }
+            return c;
           }),
         );
       }
@@ -161,7 +234,7 @@ export function Workspace({
       setScrollAnchor(anchor ?? null);
       setPane4ManuallyClosed(false);
     },
-    [selectedCandidateId],
+    [selectedCandidateId, bprStages],
   );
 
   // Pane 2 の候補者行クリックでアクティブ候補者を切り替える。
@@ -179,14 +252,16 @@ export function Workspace({
     setPane4ManuallyClosed(false);
   }, []);
 
-  const addCandidate = useCallback((stage: StageKey, name: string) => {
-    const newId = `c-${Date.now()}`;
+  const addCandidate = useCallback(async (stageId: string, name: string) => {
+    const { id: newId, bizId } = await addBprTask(stageId, name);
     const newCandidate: Candidate = {
       id: newId,
-      profile: createMinimalProfile(name),
+      profile: { ...createMinimalProfile(name), source: bizId },
       scorecards: [],
-      stage,
+      stage: stageId,
       archived: false,
+      owner: "",
+      bizId,
     };
     setCandidates((prev) => [...prev, newCandidate]);
     setSelectedCandidateId(newId);
@@ -195,11 +270,47 @@ export function Workspace({
     setPane4ManuallyClosed(false);
   }, []);
 
+  const handleAddStage = useCallback(async (name: string) => {
+    const id = await addBprStage(name);
+    setBprStages((prev) =>
+      [...prev, { id, name, sortOrder: nextBprStageSortOrder(prev) }].sort(
+        compareBprStages,
+      ),
+    );
+  }, []);
+
+  const handleAddStep = useCallback(
+    async (stage: Pick<BprStage, "id" | "name">) => {
+      const stepId = await addTaskStep(
+        selectedCandidateId,
+        stage.name,
+        stage.id,
+      );
+      setCandidates((prev) =>
+        prev.map((c) =>
+          c.id === selectedCandidateId
+            ? {
+                ...c,
+                stage: stage.id,
+                scorecards: [
+                  ...c.scorecards,
+                  createMinimalScorecard(stepId, stage.name),
+                ],
+              }
+            : c,
+        ),
+      );
+      openDetail({ type: "step", stepId });
+    },
+    [selectedCandidateId, openDetail],
+  );
+
   // 候補者をアーカイブ（論理削除）する。データは残し `archived: true` を立てる。
   // 復元は `restoreCandidate` から、もしくは Pane 2「アーカイブ済み」グループの
   // 「復元」ボタン経由。アクティブ候補者をアーカイブした場合は、非 archived の
   // 先頭候補者にフォールバックし、ステージ詳細（Pane 4）はクリアする。
   const archiveCandidate = useCallback((id: string) => {
+    void saveTaskArchived(id, true);
     setCandidates((prev) => {
       const next = prev.map((c) =>
         c.id === id ? { ...c, archived: true } : c,
@@ -218,50 +329,59 @@ export function Workspace({
   // アーカイブ済み候補者を元のステージに復元する。`stage` は archived 中も保持
   // しているので、そのステージへ戻すだけでよい。
   const restoreCandidate = useCallback((id: string) => {
+    void saveTaskArchived(id, false);
     setCandidates((prev) =>
       prev.map((c) => (c.id === id ? { ...c, archived: false } : c)),
     );
   }, []);
 
-  // 候補者を別ステージへ移動 / 同ステージ内で並び替え。
-  //
-  // `toStage` は移動先のステージキー。`toIndex` はそのステージグループ内での
-  // 0-origin の挿入位置。配列順を SSoT としているため、candidates 配列上の
-  // 絶対インデックスに変換して `splice` 相当の挿入を行う。
-  //
-  // 同ステージ内ドラッグ・別ステージへのドラッグの両方をこの 1 関数で扱う。
-  // archived 候補者は対象外（DnD はアクティブな候補者のみ可能）。
-  const moveCandidate = useCallback(
-    (id: string, toStage: StageKey, toIndex: number) => {
-      setCandidates((prev) => {
-        const subjectIndex = prev.findIndex((c) => c.id === id);
-        if (subjectIndex < 0) return prev;
-        const subject = prev[subjectIndex];
-        if (subject.archived) return prev;
+  const updateScorecardField = useCallback(
+    (stepId: string, field: EditableScorecardKey, value: string) => {
+      setCandidates((prev) =>
+        prev.map((c) =>
+          c.id === selectedCandidateId
+            ? {
+                ...c,
+                scorecards: c.scorecards.map((s) => {
+                  if (s.id !== stepId) return s;
+                  if (field === "decision") {
+                    const trimmed = value.trim();
+                    return {
+                      ...s,
+                      decision: trimmed === "" ? undefined : trimmed,
+                    };
+                  }
+                  return { ...s, [field]: value };
+                }),
+              }
+            : c,
+        ),
+      );
 
-        const without = prev.filter((_, i) => i !== subjectIndex);
-        const updated: Candidate = { ...subject, stage: toStage };
-
-        let count = 0;
-        let absInsertAt = without.length;
-        for (let i = 0; i < without.length; i++) {
-          const c = without[i];
-          if (!c.archived && c.stage === toStage) {
-            if (count === toIndex) {
-              absInsertAt = i;
-              break;
-            }
-            count++;
-          }
-        }
-        return [
-          ...without.slice(0, absInsertAt),
-          updated,
-          ...without.slice(absInsertAt),
-        ];
-      });
+      const dbField =
+        field === "decision" ? "decision" : (field as Parameters<typeof saveStepField>[1]);
+      void saveStepField(stepId, dbField, value);
     },
-    [],
+    [selectedCandidateId],
+  );
+
+  const updateMaterials = useCallback(
+    (stepId: string, materials: Material[]) => {
+      setCandidates((prev) =>
+        prev.map((c) =>
+          c.id === selectedCandidateId
+            ? {
+                ...c,
+                scorecards: c.scorecards.map((s) =>
+                  s.id === stepId ? { ...s, materials } : s,
+                ),
+              }
+            : c,
+        ),
+      );
+      void saveStepMaterials(stepId, materials);
+    },
+    [selectedCandidateId],
   );
 
   const addDepartment = useCallback((name: string) => {
@@ -283,7 +403,7 @@ export function Workspace({
               ...d,
               positions: [
                 ...d.positions,
-                { id: `p-${Date.now()}`, name: posName, count: 0 },
+                { id: `p-${Date.now()}`, name: posName, count: 0, flags: [] },
               ],
             }
           : d,
@@ -301,96 +421,48 @@ export function Workspace({
     );
   }, []);
 
-  // 評価観点 ★ の編集ハンドラ。フェーズ 3A から「アクティブ候補者」の
-  // scorecards を更新する形に変更（candidates 配列の中の該当候補者だけを差し替え）。
-  const updateAxisScore = useCallback(
-    (stage: StageKey, axis: AxisKey, value: number | null) => {
-      setCandidates((prev) =>
-        prev.map((c) =>
-          c.id === selectedCandidateId
-            ? {
-                ...c,
-                scorecards: c.scorecards.map((s) =>
-                  s.stage === stage
-                    ? { ...s, axisScores: { ...s.axisScores, [axis]: value } }
-                    : s,
-                ),
-              }
-            : c,
-        ),
-      );
-    },
-    [selectedCandidateId],
-  );
-
-  // Pane 4 モード 2「メタ情報」の inline edit から呼ばれる。
-  // `decision` だけ undefined を許すため、空文字は undefined として扱う
-  // （`MetaRow` 廃止前の "未判定" 表示の代替: `EditableFieldRow` 側で空 = "未設定"）。
-  // フェーズ 3A: アクティブ候補者の scorecards を更新する形に変更。
-  const updateScorecardField = useCallback(
-    (stage: StageKey, field: EditableScorecardKey, value: string) => {
-      setCandidates((prev) =>
-        prev.map((c) =>
-          c.id === selectedCandidateId
-            ? {
-                ...c,
-                scorecards: c.scorecards.map((s) => {
-                  if (s.stage !== stage) return s;
-                  if (field === "decision") {
-                    const trimmed = value.trim();
-                    return {
-                      ...s,
-                      decision: trimmed === "" ? undefined : trimmed,
-                    };
-                  }
-                  return { ...s, [field]: value };
-                }),
-              }
-            : c,
-        ),
-      );
-    },
-    [selectedCandidateId],
-  );
-
   // Pane 4 内の `useEffect` 依存安定化のため、Workspace 側でメモ化して props で渡す。
   const consumeScrollAnchor = useCallback(() => setScrollAnchor(null), []);
   const togglePane4 = useCallback(() => setPane4ManuallyClosed((v) => !v), []);
 
-  const positionTitle = "フロントエンドエンジニア";
-  const departmentTitle = "プロダクト開発";
+  const positionTitle = profile.address || "要チェック業務";
+  const departmentTitle = "BPR進行タスク";
+
+  const bizSystemsMap = useMemo(
+    () => buildBizSystemsMap(systems, bizSysLinks),
+    [systems, bizSysLinks],
+  );
+
+  const activeTaskSystems = useMemo(
+    () => resolveTaskSystems(activeCandidate.bizId, bizSystemsMap),
+    [activeCandidate.bizId, bizSystemsMap],
+  );
 
   const candidateGroups: Group[] = useMemo(() => {
-    // ステージグループは常に 4 段階すべて表示する。空ステージも残すことで、
-    // 「最後の 1 名を別ステージへ動かしたら戻し先が消える」事故を防ぐ
-    // （ADR-006 §2-2 の補足）。
-    const stageGroups: Group[] = STAGE_ORDER.map((stage) => ({
+    const toRow = (c: Candidate) => ({
+      id: c.id,
+      name: c.profile.name,
+      judgments: deriveTaskJudgments(c.id, contextNotes, managementPolicies),
+      systems: resolveTaskSystems(c.bizId, bizSystemsMap),
+    });
+
+    const stageGroups: Group[] = bprStages.map((stage) => ({
       kind: "stage" as const,
-      stage,
-      label: STAGE_LABELS[stage],
+      stageId: stage.id,
+      label: stage.name,
       items: candidates
-        .filter((c) => !c.archived && c.stage === stage)
-        .map((c) => ({
-          id: c.id,
-          name: c.profile.name,
-          averageScore: getCandidateAverageScore(c),
-        })),
+        .filter((c) => !c.archived && c.stage === stage.id)
+        .map(toRow),
     }));
 
-    const archivedItems = candidates
-      .filter((c) => c.archived)
-      .map((c) => ({
-        id: c.id,
-        name: c.profile.name,
-        averageScore: getCandidateAverageScore(c),
-      }));
+    const archivedItems = candidates.filter((c) => c.archived).map(toRow);
 
     if (archivedItems.length === 0) return stageGroups;
     return [
       ...stageGroups,
       { kind: "archived" as const, label: ARCHIVED_GROUP_LABEL, items: archivedItems },
     ];
-  }, [candidates]);
+  }, [bprStages, candidates, contextNotes, managementPolicies, bizSystemsMap]);
 
   return (
     // shadcn/ui の SidebarProvider が外側を取り、Pane 1 (`<Sidebar>`) を全高で固定
@@ -427,15 +499,18 @@ export function Workspace({
             selectedCandidateId={selectedCandidateId}
             onSelectCandidate={selectCandidate}
             onAddCandidate={addCandidate}
+            onAddStage={handleAddStage}
             onArchiveCandidate={archiveCandidate}
             onRestoreCandidate={restoreCandidate}
-            onMoveCandidate={moveCandidate}
           />
           <CandidateDashboardPane
             profile={profile}
             scorecards={scorecards}
+            bprStages={bprStages}
+            systems={activeTaskSystems}
             selectedDetail={selectedDetail}
             onOpenDetail={openDetail}
+            onAddStep={handleAddStep}
             setProfile={setProfile}
             applicationInfoOpen={applicationInfoOpen}
             onApplicationInfoOpenChange={setApplicationInfoOpen}
@@ -447,10 +522,11 @@ export function Workspace({
             selectedDetail={selectedDetail}
             scrollAnchor={scrollAnchor}
             onScrollAnchorConsumed={consumeScrollAnchor}
-            onUpdateAxis={updateAxisScore}
             onUpdateScorecardField={updateScorecardField}
+            onUpdateMaterials={updateMaterials}
             pane4Open={pane4Open}
             onTogglePane4={togglePane4}
+            contextNotes={contextNotes}
           />
         </div>
       </SidebarInset>

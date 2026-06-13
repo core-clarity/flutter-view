@@ -1,0 +1,210 @@
+[
+  {
+    "id": "sys-170",
+    "name": "基幹管理会計ＣＯ",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "MKI",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-171",
+    "name": "人事システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "LEG/BPIO",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-173",
+    "name": "アーカイブシステム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "NII",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-174",
+    "name": "スタジオ管理",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "NII",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-176",
+    "name": "勤怠システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "BC",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-177",
+    "name": "グッズ事業管理システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "BC",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-178",
+    "name": "ライヴ事業管理システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "BC",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-179",
+    "name": "著作権再分配システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-180",
+    "name": "契約システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-181",
+    "name": "法務決裁システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-182",
+    "name": "アーティスト分配システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "ベスビオ",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-183",
+    "name": "印税ステメンWEB報告",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-185",
+    "name": "著作隣接権分配、二次利用計上システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS・ベスビオ",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-186",
+    "name": "音楽事業管理システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "BC",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-187",
+    "name": "音楽出版ステメンWEB報告",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-188",
+    "name": "マスター資源管理システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "NII",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-189",
+    "name": "委員会分配システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-190",
+    "name": "映像事業管理システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "BC",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-191",
+    "name": "押印・契約書保管申請",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-192",
+    "name": "社員目標管理システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-195",
+    "name": "管理会計軸マスタ管理",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "BC",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-197",
+    "name": "データマート",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS（BC）",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-198",
+    "name": "音楽配信メタ納品システム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS（BC）",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-199",
+    "name": "音楽配信実績取り込みシステム",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "DTS",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-unassigned-25",
+    "name": "<システム未割当>",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "",
+    "contractStatus": ""
+  },
+  {
+    "id": "sys-unassigned-26",
+    "name": "<システム未割当>",
+    "archType": "",
+    "mainDb": "",
+    "vendor": "",
+    "contractStatus": ""
+  }
+]

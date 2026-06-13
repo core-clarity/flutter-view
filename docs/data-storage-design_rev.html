@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>データ保存設計メモ | Flutter BPR ワークスペース</title>
+<style>
+  :root {
+    --bg: oklch(0.29 0.007 242);
+    --surface: oklch(0.32 0.009 240);
+    --surface2: oklch(0.35 0.009 240);
+    --border: oklch(0.43 0.011 238);
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --amber: #f0a020;
+    --amber-dim: #f0a02033;
+    --red: #f85149;
+    --red-dim: #f8514922;
+    --green: #3fb950;
+    --green-dim: #3fb95022;
+    --blue: #58a6ff;
+    --blue-dim: #58a6ff22;
+    --purple: #bc8cff;
+    --purple-dim: #bc8cff22;
+    --orange: #d29922;
+    --orange-dim: #d2992222;
+    --slate: #6e7681;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  a { color: var(--blue); text-decoration: none; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(160deg, oklch(0.27 0.007 242) 0%, oklch(0.33 0.009 240) 50%, oklch(0.27 0.007 242) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 56px 0 44px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, #58a6ff18 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--blue);
+    background: var(--blue-dim);
+    border: 1px solid #58a6ff44;
+    border-radius: 20px;
+    padding: 3px 12px;
+    margin-bottom: 16px;
+  }
+  .hero h1 { font-size: 28px; font-weight: 700; line-height: 1.3; margin-bottom: 10px; }
+  .hero p { color: var(--muted); font-size: 14px; }
+
+  /* ── Sections ── */
+  .section { padding: 48px 0; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Decision Cards ── */
+  .decision-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 600px) { .decision-grid { grid-template-columns: 1fr; } }
+  .decision-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    position: relative;
+  }
+  .decision-card .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .decision-card .card-q { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .decision-card .card-a {
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .decision-card .card-reason {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    line-height: 1.5;
+  }
+  .tag-blue  { color: var(--blue);   background: var(--blue-dim);   border: 1px solid #58a6ff33; }
+  .tag-green { color: var(--green);  background: var(--green-dim);  border: 1px solid #3fb95033; }
+  .tag-amber { color: var(--amber);  background: var(--amber-dim);  border: 1px solid #f0a02033; }
+  .tag-purple{ color: var(--purple); background: var(--purple-dim); border: 1px solid #bc8cff33; }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  /* ── Storage Split ── */
+  .storage-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 600px) { .storage-split { grid-template-columns: 1fr; } }
+  .storage-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .storage-box-header {
+    padding: 12px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .storage-box-header .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .storage-box ul { list-style: none; padding: 12px 0; }
+  .storage-box li {
+    padding: 8px 18px;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+  }
+  .storage-box li:last-child { border-bottom: none; }
+  .storage-box li .file-name { font-weight: 600; font-family: ui-monospace, monospace; font-size: 12px; }
+  .storage-box li .file-desc { font-size: 11px; color: var(--muted); }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead tr { background: var(--surface2); }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  .mono { font-family: ui-monospace, monospace; font-size: 12px; }
+  .note { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* ── Open Issues ── */
+  .issue-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .issue-item {
+    display: flex;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--orange);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  .issue-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--orange);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── Next Steps ── */
+  .steps-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .step-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+  }
+  .step-num {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--blue);
+    flex-shrink: 0;
+    line-height: 1.2;
+    min-width: 24px;
+  }
+  .step-body strong { font-size: 14px; font-weight: 700; display: block; margin-bottom: 2px; }
+  .step-body span { font-size: 12px; color: var(--muted); }
+  .step-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    align-self: flex-start;
+  }
+
+  /* ── Diagrams ── */
+  .diagram-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    overflow-x: auto;
+  }
+  .diagram-wrap svg { width: 100%; max-width: 800px; display: block; margin: 0 auto; }
+  .diagram-caption {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* ── フラッタ画像ホバー拡大 ── */
+  .flatta-img-wrap { position: relative; display: inline-flex; cursor: zoom-in; }
+  .flatta-img-wrap .flatta-fullsize {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    max-width: 88vw;
+    max-height: 88vh;
+    width: auto; height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+    border: 3px solid var(--blue);
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 24px 64px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
+  .flatta-img-wrap:hover .flatta-fullsize { display: block; }
+
+  /* ── Footer ── */
+  .footer { padding: 32px 0; text-align: center; color: var(--slate); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <div class="hero-tag">Data Storage Design</div>
+    <h1 style="display:flex;align-items:center;justify-content:center;gap:14px;">
+      <span>何を・どこに保存するか</span>
+      <span class="flatta-img-wrap">
+        <img src="img/フラッタ.jpg" alt="フラッタ"
+             style="height:52px;width:52px;border-radius:50%;object-fit:cover;border:2px solid var(--blue);opacity:0.88;vertical-align:middle;flex-shrink:0">
+        <img src="img/フラッタ.jpg" alt="フラッタ 原寸大" class="flatta-fullsize">
+      </span>
+    </h1>
+    <p>Flutter BPR ワークスペース — グループセッション向け設計メモ &nbsp;|&nbsp; 2026-06-06</p>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- 主要判断サマリ -->
+  <section class="section">
+    <div class="section-title">主要な判断（5問）</div>
+
+    <div class="decision-grid">
+
+      <div class="decision-card">
+        <div class="card-label tag-blue badge" style="margin-bottom:8px;">Q1</div>
+        <div class="card-q">単独利用 vs チーム共有？</div>
+        <div class="card-a">✅ チームで共有しながら使う</div>
+        <div class="card-reason">BPR は情シス・各部門マネージャ・役員など複数の主語が登場するため、全員がリアルタイムで同じ進捗を参照できることが必要。JSON+Git では Push しないと他の人に見えない。</div>
+      </div>
+
+      <div class="decision-card">
+        <div class="card-label tag-blue badge" style="margin-bottom:8px;">Q2</div>
+        <div class="card-q">頻繁に変わるデータはどれか？</div>
+        <div class="card-a">✅ bprTasks・contextNotes・bizItems</div>
+        <div class="card-reason">BPRタスクは毎週ステージが進み、メモは随時追記され、要チェック業務は担当者が増減する。逆に systems・managementPolicies・workspace は設定値に近く変化が少ない。</div>
+      </div>
+
+      <div class="decision-card">
+        <div class="card-label tag-blue badge" style="margin-bottom:8px;">Q3</div>
+        <div class="card-q">systems（業務システム台帳）はどこに？</div>
+        <div class="card-a">✅ DB に入れる（整合性優先）</div>
+        <div class="card-reason">当初「変化が少ないので JSON でよい」と考えたが、biz_sys_links や policy_system_links が sys_id を参照するため、外部キー制約が張れない問題が発覚。整合性を優先して DB に移動。</div>
+      </div>
+
+      <div class="decision-card">
+        <div class="card-label tag-blue badge" style="margin-bottom:8px;">Q4</div>
+        <div class="card-q">scorecards（ステージ記録）はどう持つか？</div>
+        <div class="card-a">✅ 別テーブル（attachments は JSONB）</div>
+        <div class="card-reason">「特定ステージの記録だけ取得」「日付でソート」などの将来クエリに備えて別テーブルが有利。ただし添付ファイルはまだ実体がないのでメタ情報を JSONB に埋め込む。</div>
+      </div>
+
+      <div class="decision-card">
+        <div class="card-label tag-blue badge" style="margin-bottom:8px;">Q5</div>
+        <div class="card-q">managementPolicies の appliesTo 配列は？</div>
+        <div class="card-a">✅ 中間テーブルに分離</div>
+        <div class="card-reason">JSONB 配列だと「この経営方針に紐づくタスク一覧」を取得するたびアプリ側でパースが必要。中間テーブルなら INSERT/DELETE で単純に管理でき、JOIN クエリも書きやすい。</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- アーキテクチャ図 -->
+  <section class="section">
+    <div class="section-title">全体アーキテクチャ図</div>
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 800 215" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="アプリ・リポジトリ・DBのアーキテクチャ図">
+        <defs>
+          <marker id="arch-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 1 L 9 5 L 0 9 Z" fill="#6e7681"/>
+          </marker>
+        </defs>
+
+        <!-- ─── Git Repository (dashed) ─── -->
+        <rect x="15" y="28" width="205" height="158" rx="8"
+              fill="#181f2a" stroke="#454e5c" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="117" y="50" text-anchor="middle"
+              fill="#6e7681" font-size="9" font-weight="700" letter-spacing="2" font-family="monospace,system-ui">GIT REPOSITORY</text>
+
+        <!-- JSON ファイルアイコン -->
+        <path d="M 88,65 L 113,65 L 125,77 L 125,127 L 88,127 Z" fill="#1a2535" stroke="#f0a020" stroke-width="1.5"/>
+        <path d="M 113,65 L 113,77 L 125,77 Z" fill="#f0a020" opacity="0.65"/>
+        <text x="106" y="100" text-anchor="middle"
+              fill="#f0a020" font-size="13" font-weight="700" font-family="monospace">{ }</text>
+
+        <!-- ファイル名 -->
+        <text x="156" y="90" fill="#e6edf3" font-size="13" font-weight="600">workspace</text>
+        <text x="156" y="108" fill="#e6edf3" font-size="13" font-weight="600">.json</text>
+        <text x="156" y="126" fill="#8b949e" font-size="11">（設定値のみ）</text>
+
+        <!-- ─── 矢印 Repo → App ─── -->
+        <line x1="220" y1="107" x2="278" y2="107"
+              stroke="#6e7681" stroke-width="1.5" marker-end="url(#arch-arr)"/>
+        <text x="249" y="99" text-anchor="middle" fill="#6e7681" font-size="10">JSON 読み込み</text>
+
+        <!-- ─── Next.js App ─── -->
+        <rect x="280" y="58" width="213" height="98" rx="8"
+              fill="#181f2a" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="386" y="81" text-anchor="middle"
+              fill="#8b949e" font-size="9" font-weight="700" letter-spacing="2" font-family="monospace,system-ui">NEXT.JS APP</text>
+        <text x="386" y="111" text-anchor="middle"
+              fill="#e6edf3" font-size="14" font-weight="600">Next.js 16 / React 19</text>
+        <text x="386" y="131" text-anchor="middle"
+              fill="#8b949e" font-size="11">Zod バリデーション</text>
+
+        <!-- ─── 矢印 App ↔ DB ─── -->
+        <line x1="493" y1="100" x2="568" y2="100"
+              stroke="#6e7681" stroke-width="1.5" marker-end="url(#arch-arr)"/>
+        <line x1="568" y1="116" x2="493" y2="116"
+              stroke="#6e7681" stroke-width="1.5" marker-end="url(#arch-arr)"/>
+        <text x="530" y="92" text-anchor="middle" fill="#6e7681" font-size="10">read / write</text>
+
+        <!-- ─── Neon DB（シリンダー）─── -->
+        <!-- 胴体 (背景) -->
+        <rect x="574" y="72" width="216" height="108" fill="#1a2d1e"/>
+        <line x1="574" y1="72" x2="574" y2="180" stroke="#3fb950" stroke-width="1.5"/>
+        <line x1="790" y1="72" x2="790" y2="180" stroke="#3fb950" stroke-width="1.5"/>
+        <!-- 底面楕円 -->
+        <ellipse cx="682" cy="180" rx="108" ry="17"
+                 fill="#1a2d1e" stroke="#3fb950" stroke-width="1.5"/>
+        <!-- 上面楕円（明るめで奥行き表現） -->
+        <ellipse cx="682" cy="72" rx="108" ry="17"
+                 fill="#1f3428" stroke="#3fb950" stroke-width="1.5"/>
+        <!-- ラベル -->
+        <text x="682" y="76" text-anchor="middle"
+              fill="#3fb950" font-size="9" font-weight="700" letter-spacing="2" font-family="monospace,system-ui">NEON DB</text>
+        <text x="682" y="120" text-anchor="middle"
+              fill="#e6edf3" font-size="15" font-weight="700">10 テーブル</text>
+        <text x="682" y="142" text-anchor="middle"
+              fill="#8b949e" font-size="11">PostgreSQL (Neon)</text>
+        <text x="682" y="161" text-anchor="middle"
+              fill="#8b949e" font-size="11">Drizzle ORM</text>
+      </svg>
+    </div>
+    <p class="diagram-caption">JSON はリポジトリから直接読み込み、動的データは Neon DB に問い合わせる</p>
+  </section>
+
+  <!-- 保存先の分類 -->
+  <section class="section">
+    <div class="section-title">保存先の分類</div>
+
+    <div style="display:flex;align-items:flex-start;gap:10px;background:var(--blue-dim);border:1px solid #58a6ff44;border-left:3px solid var(--blue);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;font-size:13px;line-height:1.7;">
+      <span style="color:var(--blue);font-size:16px;flex-shrink:0;margin-top:1px;">💡</span>
+      <span>
+        <strong style="color:var(--blue);">設計方針の総括：</strong>
+        ワークスペースのコンセプト設定（名前・アイコン）のみリポジトリで管理し、
+        1:N・N:M などテーブル間の結合を持つデータ構造はすべて DB 化する。
+        今回のアプリケーションでは <strong>workspace.json を除くほぼすべてのデータがテーブル管理に適切</strong> と判断した。
+      </span>
+    </div>
+
+    <div class="storage-split">
+
+      <div class="storage-box">
+        <div class="storage-box-header">
+          <div class="dot" style="background:#6e7681;"></div>
+          JSON のまま（リポジトリ）
+        </div>
+        <ul>
+          <li>
+            <span class="file-name">workspace.json</span>
+            <span class="file-desc">ワークスペース名とアイコンの2フィールドのみ。業種変更用の設定値として機能する。</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="storage-box">
+        <div class="storage-box-header">
+          <div class="dot" style="background:#3fb950;"></div>
+          Neon DB（動的データ）
+        </div>
+        <ul>
+          <li>
+            <span class="file-name">departments</span>
+            <span class="file-desc">本部グループ（bizItems.json の上位層）</span>
+          </li>
+          <li>
+            <span class="file-name">biz_items</span>
+            <span class="file-desc">要チェック業務。flags は JSONB</span>
+          </li>
+          <li>
+            <span class="file-name">bpr_tasks</span>
+            <span class="file-desc">BPRタスク本体。profile をフラット展開・リネーム</span>
+          </li>
+          <li>
+            <span class="file-name">scorecards</span>
+            <span class="file-desc">ステージ記録。attachments は JSONB で埋め込み</span>
+          </li>
+          <li>
+            <span class="file-name">systems</span>
+            <span class="file-desc">業務システム台帳（外部キー整合性のため JSON から移動）</span>
+          </li>
+          <li>
+            <span class="file-name">biz_sys_links</span>
+            <span class="file-desc">要チェック業務 ↔ システムの n:m</span>
+          </li>
+          <li>
+            <span class="file-name">context_notes</span>
+            <span class="file-desc">空中視点メモ（法令リスク・内部統制・慣行・NG事例）</span>
+          </li>
+          <li>
+            <span class="file-name">management_policies</span>
+            <span class="file-desc">経営方針本体</span>
+          </li>
+          <li>
+            <span class="file-name">policy_task_links</span>
+            <span class="file-desc">経営方針 ↔ タスク（中間テーブル）</span>
+          </li>
+          <li>
+            <span class="file-name">policy_system_links</span>
+            <span class="file-desc">経営方針 ↔ システム（中間テーブル）</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- テーブル関連図 -->
+  <section class="section">
+    <div class="section-title">テーブル関連図（DB）</div>
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 800 515" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DBテーブル関連図">
+        <defs>
+          <marker id="rel-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 1 L 9 5 L 0 9 Z" fill="#454e5c"/>
+          </marker>
+          <marker id="rel-arr-pur" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 1 L 9 5 L 0 9 Z" fill="#bc8cff"/>
+          </marker>
+        </defs>
+
+        <!-- ════ メインテーブル（青枠）════ -->
+
+        <!-- departments -->
+        <rect x="20" y="30" width="160" height="40" rx="6"
+              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="100" y="47" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">departments</text>
+        <text x="100" y="61" text-anchor="middle" fill="#8b949e" font-size="10">本部グループ</text>
+
+        <!-- biz_items -->
+        <rect x="20" y="155" width="160" height="40" rx="6"
+              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="100" y="172" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">biz_items</text>
+        <text x="100" y="186" text-anchor="middle" fill="#8b949e" font-size="10">要チェック業務</text>
+
+        <!-- bpr_tasks -->
+        <rect x="20" y="300" width="160" height="40" rx="6"
+              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="100" y="317" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">bpr_tasks</text>
+        <text x="100" y="331" text-anchor="middle" fill="#8b949e" font-size="10">BPRタスク</text>
+
+        <!-- scorecards -->
+        <rect x="20" y="415" width="160" height="40" rx="6"
+              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="100" y="432" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">scorecards</text>
+        <text x="100" y="446" text-anchor="middle" fill="#8b949e" font-size="10">ステージ記録</text>
+
+        <!-- systems -->
+        <rect x="617" y="155" width="163" height="40" rx="6"
+              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="698" y="172" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">systems</text>
+        <text x="698" y="186" text-anchor="middle" fill="#8b949e" font-size="10">業務システム</text>
+
+        <!-- management_policies -->
+        <rect x="608" y="300" width="182" height="40" rx="6"
+              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="699" y="315" text-anchor="middle" fill="#e6edf3" font-size="11" font-weight="600" font-family="monospace">management_policies</text>
+        <text x="699" y="331" text-anchor="middle" fill="#8b949e" font-size="10">経営方針</text>
+
+        <!-- ════ 中間テーブル（破線枠）════ -->
+
+        <!-- biz_sys_links -->
+        <rect x="325" y="158" width="148" height="34" rx="4"
+              fill="#161e2c" stroke="#454e5c" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <text x="399" y="173" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="600" font-family="monospace">biz_sys_links</text>
+        <text x="399" y="185" text-anchor="middle" fill="#454e5c" font-size="9">join table</text>
+
+        <!-- policy_task_links -->
+        <rect x="325" y="303" width="148" height="34" rx="4"
+              fill="#161e2c" stroke="#454e5c" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <text x="399" y="318" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="600" font-family="monospace">policy_task_links</text>
+        <text x="399" y="330" text-anchor="middle" fill="#454e5c" font-size="9">join table</text>
+
+        <!-- ════ context_notes（紫枠）════ -->
+        <rect x="290" y="448" width="190" height="40" rx="6"
+              fill="#1a2535" stroke="#bc8cff" stroke-width="1.5"/>
+        <text x="385" y="465" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">context_notes</text>
+        <text x="385" y="479" text-anchor="middle" fill="#8b949e" font-size="10">空中視点メモ</text>
+
+        <!-- ════ 接続線 ════ -->
+
+        <!-- 1:N departments → biz_items -->
+        <line x1="100" y1="70" x2="100" y2="155"
+              stroke="#454e5c" stroke-width="1.5" marker-end="url(#rel-arr)"/>
+        <text x="110" y="85" fill="#8b949e" font-size="11" font-weight="700">1</text>
+        <text x="110" y="145" fill="#8b949e" font-size="11" font-weight="700">N</text>
+
+        <!-- 1:N biz_items → bpr_tasks -->
+        <line x1="100" y1="195" x2="100" y2="300"
+              stroke="#454e5c" stroke-width="1.5" marker-end="url(#rel-arr)"/>
+        <text x="110" y="210" fill="#8b949e" font-size="11" font-weight="700">1</text>
+        <text x="110" y="289" fill="#8b949e" font-size="11" font-weight="700">N</text>
+
+        <!-- 1:N bpr_tasks → scorecards -->
+        <line x1="100" y1="340" x2="100" y2="415"
+              stroke="#454e5c" stroke-width="1.5" marker-end="url(#rel-arr)"/>
+        <text x="110" y="354" fill="#8b949e" font-size="11" font-weight="700">1</text>
+        <text x="110" y="405" fill="#8b949e" font-size="11" font-weight="700">N</text>
+
+        <!-- N — biz_sys_links — M -->
+        <line x1="180" y1="175" x2="325" y2="175" stroke="#454e5c" stroke-width="1.5"/>
+        <text x="196" y="168" fill="#8b949e" font-size="11" font-weight="700">N</text>
+        <line x1="473" y1="175" x2="617" y2="175" stroke="#454e5c" stroke-width="1.5"/>
+        <text x="602" y="168" fill="#8b949e" font-size="11" font-weight="700">M</text>
+
+        <!-- N — policy_task_links — M -->
+        <line x1="180" y1="320" x2="325" y2="320" stroke="#454e5c" stroke-width="1.5"/>
+        <text x="196" y="313" fill="#8b949e" font-size="11" font-weight="700">N</text>
+        <line x1="473" y1="320" x2="608" y2="320" stroke="#454e5c" stroke-width="1.5"/>
+        <text x="594" y="313" fill="#8b949e" font-size="11" font-weight="700">M</text>
+
+        <!-- policy_system_links: systems ↔ management_policies（縦線 + ラベルボックス） -->
+        <line x1="698" y1="195" x2="699" y2="300"
+              stroke="#454e5c" stroke-width="1.5" marker-end="url(#rel-arr)"/>
+        <rect x="618" y="236" width="162" height="22" rx="4"
+              fill="#161e2c" stroke="#454e5c" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="699" y="251" text-anchor="middle" fill="#6e7681" font-size="10" font-weight="600" font-family="monospace">policy_system_links</text>
+        <text x="708" y="211" fill="#8b949e" font-size="11" font-weight="700">N</text>
+        <text x="708" y="289" fill="#8b949e" font-size="11" font-weight="700">M</text>
+
+        <!-- context_notes → bpr_tasks（破線・紫・ポリモーフィック） -->
+        <path d="M 290,463 Q 185,438 180,325"
+              fill="none" stroke="#bc8cff" stroke-width="1.5"
+              stroke-dasharray="5,3" marker-end="url(#rel-arr-pur)"/>
+        <text x="216" y="412" fill="#bc8cff" font-size="9" opacity="0.9">refType='task'</text>
+
+        <!-- context_notes → systems（破線・紫・右回り） -->
+        <path d="M 385,488 L 385,503 L 793,503 L 793,175 L 780,175"
+              fill="none" stroke="#bc8cff" stroke-width="1.5"
+              stroke-dasharray="5,3" marker-end="url(#rel-arr-pur)"/>
+        <text x="585" y="497" fill="#bc8cff" font-size="9" opacity="0.9">refType='system'</text>
+      </svg>
+    </div>
+    <p class="diagram-caption">実線 = 外部キー（FK）　破線ボックス = 中間テーブル　紫破線 = ポリモーフィック参照（refType で切り替え）</p>
+  </section>
+
+  <!-- テーブル設計詳細 -->
+  <section class="section">
+    <div class="section-title">テーブル設計の要点</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>テーブル</th>
+            <th>主なフィールド / 設計ポイント</th>
+            <th>元 JSON ファイル</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="mono">departments</span></td>
+            <td>id, name</td>
+            <td><span class="mono">bizItems.json</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">biz_items</span></td>
+            <td>id, dept_id (FK), name, count<div class="note">flags: <span class="mono">JSONB</span>（"重複の可能性" / "無駄では？" / "目的不明"）</div></td>
+            <td><span class="mono">bizItems.json</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">bpr_tasks</span></td>
+            <td>
+              id, biz_id (FK), stage, archived, owner<br>
+              <div class="note">profile フラット展開・リネーム:<br>
+              name → <span class="mono">task_name</span> &nbsp;|&nbsp;
+              address → <span class="mono">dept_name</span><br>
+              motivationFull → <span class="mono">background</span> &nbsp;|&nbsp;
+              careerText → <span class="mono">hearing_log</span><br>
+              availableStartDate → <span class="mono">target_date</span><br>
+              ※ birthday / phone / email / desiredSalary 系は削除</div>
+            </td>
+            <td><span class="mono">bprTasks.json</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">scorecards</span></td>
+            <td>id, task_id (FK), stage, label, date, format, interviewer, decision, comment, summary<div class="note">axis_scores: 4列フラット or JSONB（未決）<br>attachments: <span class="mono">JSONB</span>（実ファイルは将来対応）</div></td>
+            <td><span class="mono">bprTasks.json</span><br>（埋め込み配列）</td>
+          </tr>
+          <tr>
+            <td><span class="mono">systems</span></td>
+            <td>id, name, arch_type, main_db, vendor, contract_status</td>
+            <td><span class="mono">systems.json</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">biz_sys_links</span></td>
+            <td>biz_id (FK), sys_id (FK)</td>
+            <td><span class="mono">bizSysLinks.json</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">context_notes</span></td>
+            <td>id, ref_type ("task"|"system"), ref_id, note_type, title, body</td>
+            <td><span class="mono">contextNotes.json</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">management_policies</span></td>
+            <td>id, title, priority ("critical"|"high")</td>
+            <td><span class="mono">managementPolicies.json</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">policy_task_links</span></td>
+            <td>policy_id (FK), task_id (FK)<div class="note">appliesTo.tasks 配列を正規化</div></td>
+            <td><span class="mono">managementPolicies.json</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono">policy_system_links</span></td>
+            <td>policy_id (FK), system_id (FK)<div class="note">appliesTo.systems 配列を正規化</div></td>
+            <td><span class="mono">managementPolicies.json</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:12px; font-size:12px; color:var(--muted);">
+      ※ positions.json / candidates.json は採用管理ドメインの旧サンプルデータのため DB 設計の対象外。
+    </p>
+  </section>
+
+  <!-- 未決事項 -->
+  <section class="section">
+    <div class="section-title">未決事項</div>
+    <ul class="issue-list">
+      <li class="issue-item">
+        <span class="issue-num">①</span>
+        <div>
+          <strong style="font-size:13px;">biz_items.flags の持ち方</strong>
+          <div style="font-size:12px; color:var(--muted); margin-top:2px;">JSONB で配列のまま持つか、flags 中間テーブルに正規化するか。現在 3 種固定の enum なのでJSONB でも運用は成立する。</div>
+        </div>
+      </li>
+      <li class="issue-item">
+        <span class="issue-num">②</span>
+        <div>
+          <strong style="font-size:13px;">scorecards.axis_scores の列設計</strong>
+          <div style="font-size:12px; color:var(--muted); margin-top:2px;">achievements / thinkingAbility / communication / cultureFit の 4 列をフラット展開するか JSONB 1列にまとめるか。将来の軸追加を見越すと JSONB が柔軟だが、クエリでのソートは 4 列フラットが書きやすい。</div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 次のステップ -->
+  <section class="section">
+    <div class="section-title">次のステップの候補</div>
+    <ul class="steps-list">
+      <li class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>グループセッションで口頭説明</strong>
+          <span>「何をDBに入れ、なぜJSONに残すか」をこのページを参照しながら自分の言葉で説明する</span>
+        </div>
+        <span class="step-badge tag-amber badge">必須</span>
+      </li>
+      <li class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>CREATE TABLE SQL の作成</strong>
+          <span>上記の合意を元に Neon / Drizzle のスキーマファイルを書き起こす</span>
+        </div>
+        <span class="step-badge tag-blue badge">任意</span>
+      </li>
+      <li class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Neon + Drizzle ORM の実装着手</strong>
+          <span>マイグレーションを流し、既存 JSON 読み込みを DB クエリに差し替える</span>
+        </div>
+        <span class="step-badge tag-blue badge">任意</span>
+      </li>
+    </ul>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    Flutter BPR ワークスペース — データ保存設計メモ &nbsp;|&nbsp; grill-me セッション 2026-06-06
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,25 +1,38 @@
 /**
- * 採用管理ドメインの Zod スキーマと派生型。
- * 雛形の SSoT として、UI コンポーネントはここから型をインポートする。
+ * BPR ワークスペース（メタ認知〜主語が切り替わる世界〜）の Zod スキーマと派生型。
+ * UI コンポーネントはここから型をインポートする。
  *
- * 仕様の出典:
- *   - openspec/decision/0005-dashboard-drilldown-and-global-header.md
- *   - openspec/changes/add-4pane-workspace-template/specs/workspace-template/spec.md
+ * ドメインマッピング（道A踏襲ルート）:
+ *   - Department   → 本部グループ（BizSection）
+ *   - Position     → 要チェック業務（BizItem）
+ *   - Candidate    → BPRタスク（BprTask）
+ *   - StageKey     → BPR進行ステージ
+ *   - Scorecard    → ステージ記録（将来 ContextNote に移行予定）
  */
 
 import { z } from "zod";
 
-// ===== Pane 1: 部署 → ポジション 階層 =====
+// ===== Pane 1: 本部グループ → 要チェック業務 階層 =====
 
-/** 部署配下の単一ポジション。Pane 1 の階層 Sidebar に表示する単位。 */
+/** フラグ種別。要チェック業務に付与する問題の疑いの分類。 */
+export const bizFlagSchema = z.enum([
+  "重複の可能性",
+  "無駄では？",
+  "目的不明",
+]);
+export type BizFlag = z.infer<typeof bizFlagSchema>;
+
+/** 要チェック業務（Pane 1 の階層 Sidebar に表示する単位）。 */
 export const positionSchema = z.object({
   id: z.string(),
   name: z.string(),
   count: z.number(),
+  /** 問題の疑いフラグ。省略時は空配列として扱う。 */
+  flags: z.array(bizFlagSchema).default([]),
 });
 export type Position = z.infer<typeof positionSchema>;
 
-/** 部署と配下のポジション一覧。Pane 1 の階層 Sidebar の最上位単位。 */
+/** 本部グループと配下の要チェック業務一覧。Pane 1 の最上位単位。 */
 export const departmentSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -27,24 +40,20 @@ export const departmentSchema = z.object({
 });
 export type Department = z.infer<typeof departmentSchema>;
 
-// ===== 候補者プロフィール =====
+// ===== BPRタスク プロフィール =====
 
 /**
- * 候補者プロフィール。Pane 3 ヘッダー帯トグル内 + 採用条件カードで表示・編集される。
+ * BPRタスクの基本情報。
  *
- * 構成: 12 フィールド（応募情報 3 / 連絡先 3 / 採用条件 3 / 読み物 2 / 採用担当 1）。
- *
- * ADR-0014「shadcn 標準フォームによる Pane 4 編集 UI」で Lab v3 の最小構成を採用し、
- * 旧 ADR-0010 §10 H の Profile 型を supersede。削除されたフィールド
- * (`initial` / `currentCompany` / `currentRole` / `nextActionDeadline` /
- * `otherCompanies` / `desiredSalary` / `age` / `experienceYears` / `applyPosition` /
- * `careerSummary` / `motivationSummary`) は「最小プロフィール」方針により撤去:
- *
- *   - `name[0]` 派生で avatar の頭文字を生成（`initial` 廃止）
- *   - `desiredSalary` は min/max に分割（`min`〜`max` 万円の構造化編集）
- *   - `age` は `birthday` から `calculateAge` で派生表示
- *   - 現職情報・経験年数は職務経歴 textarea に集約
- *   - サマリ系（`careerSummary` / `motivationSummary`）は full 文字列だけで運用
+ * フィールドの流用マッピング（道A 踏襲ルート）:
+ *   name              → タスク名
+ *   recruiter         → 主語（ボール持ち者）
+ *   address           → 所属本部
+ *   source            → 紐づき業務ID（bizId）
+ *   motivationFull    → タスクの背景・目的メモ
+ *   careerText        → ヒアリング経緯・調査ログ
+ *   availableStartDate→ 目標完了日
+ *   その他フィールド  → 将来の拡張用（現時点では空文字）
  */
 export const profileSchema = z.object({
   name: z.string(),
@@ -62,10 +71,8 @@ export const profileSchema = z.object({
 });
 export type Profile = z.infer<typeof profileSchema>;
 
-// ===== 評価観点（4 軸固定、ADR-0005 §13 / design.md D57） =====
-// この雛形は 実績 / 思考力 / コミュニケーション / カルチャーフィット の 4 軸を採用する
+// ===== 評価観点（4 軸固定）=====
 
-/** 評価観点キー。Scorecard.axisScores のキーと一致する。 */
 export const axisKeySchema = z.enum([
   "achievements",
   "thinkingAbility",
@@ -74,7 +81,6 @@ export const axisKeySchema = z.enum([
 ]);
 export type AxisKey = z.infer<typeof axisKeySchema>;
 
-/** 4 観点別スコア。未評価は null。平均スコアは null 除外で派生計算する。 */
 export const axisScoresSchema = z.object({
   achievements: z.number().nullable(),
   thinkingAbility: z.number().nullable(),
@@ -83,57 +89,47 @@ export const axisScoresSchema = z.object({
 });
 export type AxisScores = z.infer<typeof axisScoresSchema>;
 
-/** 評価観点の表示順。Pane 3 評価カードと Pane 4 モード 2 で共通に使う。 */
 export const AXIS_ORDER = axisKeySchema.options;
 
-// ===== 選考フロー =====
+// ===== BPR 進行ステージ（Pane 2 列・ワークスペース単位で自由追加）=====
 
-/** 選考ステージのキー。`STAGE_ORDER` と一致する 4 段階。 */
-export const stageKeySchema = z.enum(["screening", "first", "second", "final"]);
+export const bprStageSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  sortOrder: z.number().default(0),
+});
+export type BprStage = z.infer<typeof bprStageSchema>;
+export const bprStagesSchema = z.array(bprStageSchema);
+
+/** @deprecated seed 互換用。新規コードは BprStage.id（string）を使う */
+export const stageKeySchema = z.enum([
+  "hearing",
+  "flow",
+  "issues",
+  "meeting",
+  "tobe",
+  "poc",
+]);
 export type StageKey = z.infer<typeof stageKeySchema>;
+export const STAGE_ORDER = stageKeySchema.options;
 
-/** ステージの実施ステータス。done = 実施済 / planned = 予定済 / pending = 未定。 */
 export const stageStatusSchema = z.enum(["done", "planned", "pending"]);
 export type StageStatus = z.infer<typeof stageStatusSchema>;
 
-/**
- * 添付ファイル（Attachment）。Pane 4 モード 2 の「提出書類 / 文字起こし」両セクションで
- * 共通のファイル一覧として表示される（ADR-0010 §13 D75、ADR-0008 / ADR-0009 と整合）。
- *
- * `kind: "txt" | "pdf"` の discriminated union で、`txt` は `previewText` 必須、
- * `pdf` は持たない（雛形では PDF の中身プレビューはスコープ外。行は `disabled` で
- * 「プレビュー不可」バッジ表示、DL のみ可能）。`id` は React の `key` と一意性確保
- * のために必須。
- */
-const txtAttachmentSchema = z.object({
+/** 資料リンク（Google ドライブ等の URL） */
+export const materialSchema = z.object({
   id: z.string(),
-  kind: z.literal("txt"),
-  name: z.string(),
-  size: z.string(),
-  previewText: z.string(),
+  label: z.string(),
+  url: z.string(),
 });
-const pdfAttachmentSchema = z.object({
-  id: z.string(),
-  kind: z.literal("pdf"),
-  name: z.string(),
-  size: z.string(),
-});
-export const attachmentSchema = z.discriminatedUnion("kind", [
-  txtAttachmentSchema,
-  pdfAttachmentSchema,
-]);
-export type Attachment = z.infer<typeof attachmentSchema>;
+export type Material = z.infer<typeof materialSchema>;
 
 /**
- * 選考ステージごとのスコアカード（メタ情報 + 評価 + コメント + 要約 + 添付）。
- *
- * ADR-0010 §13 D75 / ADR-0008 で「提出書類 / 文字起こし」を `attachments` 統一型に
- * 集約した。旧 `transcript?: string[]` / `documents?: Array<{ name; size }>` は
- * 削除済（互換層なし、KISS）。書類選考も面接も同じ `Attachment[]` を持ち、
- * UI 側（`AttachmentList`）で同型のファイル一覧として描画される。
+ * BPR 進行ステップ記録（1 タスク内の自由追加ステップ）。
+ * Pane 3 一覧・Pane 4 詳細で使用。
  */
 export const scorecardSchema = z.object({
-  stage: stageKeySchema,
+  id: z.string(),
   label: z.string(),
   date: z.string(),
   format: z.string(),
@@ -142,33 +138,24 @@ export const scorecardSchema = z.object({
   comment: z.string().optional(),
   summary: z.string().optional(),
   axisScores: axisScoresSchema,
-  attachments: z.array(attachmentSchema),
+  materials: z.array(materialSchema).default([]),
 });
 export type Scorecard = z.infer<typeof scorecardSchema>;
 
-/**
- * Pane 2 で表示するステージの並び順（左から右へ進行する選考フローと一致）。
- * `STAGE_ORDER` は派生計算（candidateGroups）と「+ 追加」UI の両方から参照する。
- */
-export const STAGE_ORDER = stageKeySchema.options;
-
-// ===== 候補者 =====
+// ===== BPRタスク =====
 
 /**
- * 候補者の最上位データ。Pane 2 の所属グループは `stage` で決まる。
- * 各 scorecard の派生 status (`deriveStageStatus`) とは独立に持ち、
- * 「現在どのステージに居るか」を表す。
+ * BPRタスクの最上位データ（旧 Candidate）。
+ * `stage` は Pane 2 の進行ステージ列 id（bpr_stages.id）。
  */
 export const candidateSchema = z.object({
   id: z.string(),
   profile: profileSchema,
   scorecards: z.array(scorecardSchema),
-  stage: stageKeySchema,
-  // 論理削除フラグ。`stage` とは直交する。アーカイブされた候補者は通常のステージ
-  // グループから外れ、Pane 2 末尾の「アーカイブ済み」グループに表示される。
-  // 復元時は `stage` をそのまま使って元のステージへ戻る。JSON シードでは省略可
-  // （`.default(false)` で読み込み時に補完）。
+  stage: z.string(),
   archived: z.boolean().default(false),
+  owner: z.string().default(""),
+  bizId: z.string().default(""),
 });
 export type Candidate = z.infer<typeof candidateSchema>;
 
@@ -181,42 +168,133 @@ export const workspaceSchema = z.object({
   icon: z.string(),
 });
 
+// ===== Pane 2: 業務システム =====
+
+/** アーキテクチャ分類 */
+export const archTypeSchema = z.enum([
+  "オンプレミス",
+  "クラウド SaaS",
+  "クラウド PaaS",
+  "ハイブリッド",
+]);
+export type ArchType = z.infer<typeof archTypeSchema>;
+
+/** 業務システム（Pane 2 の選択候補） */
+export const systemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  archType: z.string(),
+  mainDb: z.string(),
+  vendor: z.string(),
+  contractStatus: z.string(),
+});
+export type System = z.infer<typeof systemSchema>;
+
+export const systemsSchema = z.array(systemSchema);
+
+// ===== n:m 紐づきテーブル =====
+
+/** 要チェック業務 ↔ 業務システム の n:m リンク */
+export const bizSysLinkSchema = z.object({
+  bizId: z.string(),
+  sysId: z.string(),
+});
+export type BizSysLink = z.infer<typeof bizSysLinkSchema>;
+
+export const bizSysLinksSchema = z.array(bizSysLinkSchema);
+
+// ===== Pane 4: 空中視点メモ =====
+
+/** 空中視点メモの種別 */
+export const contextNoteTypeSchema = z.enum([
+  "法令リスク",
+  "内部統制",
+  "業界慣行",
+  "ブラックリスト",
+]);
+export type ContextNoteType = z.infer<typeof contextNoteTypeSchema>;
+
+/**
+ * 空中視点メモ。法令・内部統制・業界慣行・過去の失敗事例の客観的根拠を記録する。
+ * `refType` で task か system への紐づきを区別する。
+ */
+export const contextNoteSchema = z.object({
+  id: z.string(),
+  refType: z.enum(["task", "system"]),
+  refId: z.string(),
+  noteType: contextNoteTypeSchema,
+  title: z.string(),
+  body: z.string(),
+});
+export type ContextNote = z.infer<typeof contextNoteSchema>;
+
+export const contextNotesSchema = z.array(contextNoteSchema);
+
 // ===== Pane 4 の表示状態（SelectedDetail） =====
 
 /**
- * Pane 4 に「何を開いているか」を表す型（ADR-0015 §9 大決定 G）。
- *
- * - `{ type: "stage"; stage }`: 選考ステージ詳細を表示中
- * - `null`: ステージ未選択（Pane 4 は畳み状態）
- *
- * 旧 `{ type: "profile" }` はモード 1 廃止（ADR-0015 §4 大決定 B）に伴い削除。
+ * Pane 4 に「何を開いているか」を表す型。
+ * - `{ type: "step"; stepId }`: 進行ステップ詳細を表示中
+ * - `null`: 未選択（Pane 4 は畳み状態）
  */
-export type SelectedDetail = { type: "stage"; stage: StageKey } | null;
+export type SelectedDetail = { type: "step"; stepId: string } | null;
+
+// ===== 判定バッジ =====
+
+/**
+ * 判定の深刻度レベル。
+ * critical > high > warning > blocked の順で表示優先度を持つ。
+ */
+export const judgmentLevelSchema = z.enum([
+  "critical",
+  "high",
+  "warning",
+  "blocked",
+]);
+export type JudgmentLevel = z.infer<typeof judgmentLevelSchema>;
+
+/** 判定の根拠源泉ラベル。バッジに小さく表示する。 */
+export const judgmentSourceSchema = z.enum([
+  "法令",
+  "統制",
+  "慣行",
+  "NG",
+  "経営",
+]);
+export type JudgmentSource = z.infer<typeof judgmentSourceSchema>;
+
+/** タスク行に表示する判定バッジ1件分。 */
+export type Judgment = {
+  level: JudgmentLevel;
+  source: JudgmentSource;
+  title: string;
+};
+
+// ===== 経営方針 =====
+
+export const managementPolicySchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  priority: z.enum(["critical", "high"]),
+  appliesTo: z.object({
+    tasks: z.array(z.string()),
+    systems: z.array(z.string()),
+  }),
+});
+export type ManagementPolicy = z.infer<typeof managementPolicySchema>;
+export const managementPoliciesSchema = z.array(managementPolicySchema);
 
 // ===== Pane 2 の派生計算用 UI 表示型 =====
-// Workspace の派生計算 (candidateGroups) と CandidateListPane の props 型として共有する。
-// candidates 配列から生成される表示単位。
-//
-// `averageScore` は `lib/computed/scorecards.ts` の `getCandidateAverageScore` で
-// 派生計算した値を Workspace 側で詰めて渡す。Pane 2 候補者行の右端に
-// `★ 4.5` または `—`（未評価）として表示される。Pane 3 評価カードの「平均スコア」
-// と同じ意味（最新 done scorecard の axisScores 平均、ADR-0013）。
 
 export type CandidateRow = {
   id: string;
   name: string;
-  averageScore: number | null;
+  /** 判定バッジ一覧。深刻度の高い順に並ぶ。 */
+  judgments: Judgment[];
+  /** 紐づく業務システム（要チェック業務経由） */
+  systems: System[];
 };
 
-// Pane 2 のグループ表示単位（ステージ or アーカイブ済み）。
-// 候補者データは `INITIAL_CANDIDATES` を SSoT とし、`candidateGroups` で
-// 派生計算して CandidateListPane に props で渡す（Workspace 内で計算）。
-//
-// `kind: "stage"` は通常の選考ステージグループ。`stage: StageKey` は
-// 「+ ボタン」から `addCandidate(stage)` を呼ぶときの引数に使う。
-// `kind: "archived"` は archived === true の候補者を集めた末尾の仮想グループで、
-// 「+ 追加」操作は持たず、復元のみ可能。並び順は `kind: "stage"` を STAGE_ORDER で
-// 並べた後、最後に `kind: "archived"` を 1 つだけ置く（要素があるときのみ表示）。
 export type Group =
-  | { kind: "stage"; stage: StageKey; label: string; items: CandidateRow[] }
+  | { kind: "stage"; stageId: string; label: string; items: CandidateRow[] }
   | { kind: "archived"; label: string; items: CandidateRow[] };

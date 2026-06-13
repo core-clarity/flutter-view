@@ -1,0 +1,881 @@
+[
+  {
+    "id": "task-1",
+    "profile": {
+      "name": "BI機能強化",
+      "birthday": "",
+      "source": "biz-11",
+      "email": "",
+      "phone": "",
+      "address": "レーベル事業本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": ""
+    },
+    "scorecards": [],
+    "stage": "stage-1",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-11"
+  },
+  {
+    "id": "task-2",
+    "profile": {
+      "name": "Regend原盤報告機能",
+      "birthday": "",
+      "source": "biz-13",
+      "email": "",
+      "phone": "",
+      "address": "レーベル事業本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": ""
+    },
+    "scorecards": [],
+    "stage": "stage-1",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-13"
+  },
+  {
+    "id": "task-3",
+    "profile": {
+      "name": "Regend譲渡原盤確定、管理方法",
+      "birthday": "",
+      "source": "biz-12",
+      "email": "",
+      "phone": "",
+      "address": "レーベル事業本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": ""
+    },
+    "scorecards": [],
+    "stage": "stage-1",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-12"
+  },
+  {
+    "id": "task-4",
+    "profile": {
+      "name": "SaaS連携",
+      "birthday": "",
+      "source": "biz-10",
+      "email": "",
+      "phone": "",
+      "address": "レーベル事業本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": ""
+    },
+    "scorecards": [],
+    "stage": "stage-1",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-10"
+  },
+  {
+    "id": "task-5",
+    "profile": {
+      "name": "Windows'2012Serverリプレイス",
+      "birthday": "",
+      "source": "biz-3",
+      "email": "",
+      "phone": "",
+      "address": "事業支援本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": ""
+    },
+    "scorecards": [],
+    "stage": "stage-1",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-3"
+  },
+  {
+    "id": "task-6",
+    "profile": {
+      "name": "セコム見直し",
+      "birthday": "",
+      "source": "biz-4",
+      "email": "",
+      "phone": "",
+      "address": "事業支援本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": "セコムトラストシステムのサービスで構築されているセキュア環境でのステートメント発行アーキの刷新を検討する。コストダウン、業務負荷削減、権利者メリットがあれば切り替えを検討する。"
+    },
+    "scorecards": [
+      {
+        "id": "task-6-step-1",
+        "label": "類似サービス情報収集",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-6-step-2",
+        "label": "ウイングアークプレゼン",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-6-step-3",
+        "label": "ステメン数算定、ランニング見積",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-6-step-4",
+        "label": "ＡＡＡプレゼン",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-6-step-5",
+        "label": "ステメン数算定、ランニング見積",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      }
+    ],
+    "stage": "stage-34",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-4"
+  },
+  {
+    "id": "task-7",
+    "profile": {
+      "name": "原価配賦処理停止",
+      "birthday": "",
+      "source": "biz-1",
+      "email": "",
+      "phone": "",
+      "address": "事業支援本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": "仕掛品の原価化処理の後端で品番に配賦している処理を停止し、影響を受けるシステムでの対応を行い仕訳の数を削減する"
+    },
+    "scorecards": [
+      {
+        "id": "task-7-step-1",
+        "label": "ユーザヒアリング（事業管理）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-7-step-2",
+        "label": "ユーザヒアリング（経理）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-7-step-3",
+        "label": "影響システム処理調査",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-7-step-4",
+        "label": "影響システム改修",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-7-step-5",
+        "label": "配賦処理停止依頼",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-7-step-6",
+        "label": "配賦処理停止タイミング確定（事業管理）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-7-step-7",
+        "label": "配賦処理停止説明（事業管理）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-7-step-8",
+        "label": "配賦処理停止",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-7-step-9",
+        "label": "効果測定",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      }
+    ],
+    "stage": "stage-2",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-1"
+  },
+  {
+    "id": "task-8",
+    "profile": {
+      "name": "営業利益管理構想",
+      "birthday": "",
+      "source": "biz-9",
+      "email": "",
+      "phone": "",
+      "address": "総務人事本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": ""
+    },
+    "scorecards": [],
+    "stage": "stage-1",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-9"
+  },
+  {
+    "id": "task-9",
+    "profile": {
+      "name": "情報成果物発注改善",
+      "birthday": "",
+      "source": "biz-6",
+      "email": "",
+      "phone": "",
+      "address": "事業支援本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": "下請け法、取適法対応として発注書発行業務の必須化と請書の必須化を目的とする。"
+    },
+    "scorecards": [
+      {
+        "id": "task-9-step-1",
+        "label": "発注書・請書の必要性啓蒙準備",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-9-step-2",
+        "label": "情報成果物発注の実態調査（アンケート）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-9-step-3",
+        "label": "発注書・請書の必要性啓蒙",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-9-step-4",
+        "label": "請書Googleフォーム開発",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-9-step-5",
+        "label": "請書対象発注抽出部開発",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      }
+    ],
+    "stage": "stage-38",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-6"
+  },
+  {
+    "id": "task-10",
+    "profile": {
+      "name": "新人事SaaSシステム導入",
+      "birthday": "",
+      "source": "biz-7",
+      "email": "",
+      "phone": "",
+      "address": "総務人事本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": "EOS対応として2026年8月までに新SaaS人事システムへのリプレイスを行う"
+    },
+    "scorecards": [
+      {
+        "id": "task-10-step-1",
+        "label": "ユーザヒアリング（人事G）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-10-step-2",
+        "label": "RFP作成",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-10-step-3",
+        "label": "RFP配布",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-10-step-4",
+        "label": "提案コンペ",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-10-step-5",
+        "label": "ベンダ、ソリューション確定",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-10-step-6",
+        "label": "Fit＆Gap（マッピング）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-10-step-7",
+        "label": "移行データ作成",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-10-step-8",
+        "label": "新人事IF開発　API",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-10-step-9",
+        "label": "新人事IF開発　DB間連携",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-10-step-10",
+        "label": "受入システム側開発",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-10-step-11",
+        "label": "新人事システム切替",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      }
+    ],
+    "stage": "stage-11",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-7"
+  },
+  {
+    "id": "task-11",
+    "profile": {
+      "name": "社員検索、タレマネ機能、組織図業務統合",
+      "birthday": "",
+      "source": "biz-8",
+      "email": "",
+      "phone": "",
+      "address": "総務人事本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": ""
+    },
+    "scorecards": [],
+    "stage": "stage-1",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-8"
+  },
+  {
+    "id": "task-12",
+    "profile": {
+      "name": "管理会計軸共通化",
+      "birthday": "",
+      "source": "biz-14",
+      "email": "",
+      "phone": "",
+      "address": "ライヴ事業本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": "音楽・映像・ライヴ・MD・マネジメント事業の管理軸の統合を行う"
+    },
+    "scorecards": [
+      {
+        "id": "task-12-step-1",
+        "label": "ユーザヒアリング（音楽）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-2",
+        "label": "ユーザヒアリング（映像）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-3",
+        "label": "ユーザヒアリング（ライヴ）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-4",
+        "label": "ユーザヒアリング（マネジメント）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-5",
+        "label": "ユーザヒアリング（MD）",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-6",
+        "label": "アーティスト軸統合阻害要因検討",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-7",
+        "label": "アーティストマスタ運用体制整備",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-8",
+        "label": "アーティストコード整備対象システム特定",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-9",
+        "label": "企画書業務分析",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-10",
+        "label": "発番、納品、Product業務レイヤ分析",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-11",
+        "label": "実績計上（会計）処理分析",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      },
+      {
+        "id": "task-12-step-12",
+        "label": "現状仕訳分析",
+        "date": "",
+        "format": "",
+        "interviewer": "",
+        "axisScores": {
+          "achievements": null,
+          "thinkingAbility": null,
+          "communication": null,
+          "cultureFit": null
+        },
+        "materials": []
+      }
+    ],
+    "stage": "stage-22",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-14"
+  },
+  {
+    "id": "task-13",
+    "profile": {
+      "name": "音楽事業品番管理簡素化",
+      "birthday": "",
+      "source": "biz-2",
+      "email": "",
+      "phone": "",
+      "address": "事業支援本部",
+      "recruiter": "",
+      "desiredSalaryMin": "",
+      "desiredSalaryMax": "",
+      "availableStartDate": "",
+      "careerText": "",
+      "motivationFull": ""
+    },
+    "scorecards": [],
+    "stage": "stage-1",
+    "archived": false,
+    "owner": "",
+    "bizId": "biz-2"
+  }
+]

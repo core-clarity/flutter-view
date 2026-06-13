@@ -3,11 +3,12 @@
 import { type CSSProperties, type ReactNode } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, MoreHorizontal, Star } from "lucide-react";
+import { GripVertical, MoreHorizontal } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { type CandidateRow, type StageKey } from "@/lib/schema";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { JudgmentBadge } from "@/components/primitives/JudgmentBadge";
+import { SystemIcon } from "@/components/primitives/SystemIcon";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -92,17 +93,17 @@ export function SortableCandidateRow({
         >
           <GripVertical aria-hidden="true" className="size-4" />
         </span>
-        <Avatar className="size-8 shrink-0">
-          <AvatarFallback className="bg-primary/10 text-xs text-primary">
-            {cand.name[0] ?? "?"}
-          </AvatarFallback>
-        </Avatar>
+        <SystemIcon systems={cand.systems} size="row" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm">{cand.name}</p>
+          {cand.judgments.length > 0 && (
+            <span className="mt-0.5 flex flex-wrap gap-0.5">
+              {cand.judgments.slice(0, 3).map((j, i) => (
+                <JudgmentBadge key={i} judgment={j} />
+              ))}
+            </span>
+          )}
         </div>
-        <span className="transition-opacity group-focus-within/candidate:opacity-0 group-hover/candidate:opacity-0">
-          <ScoreBadge avg={cand.averageScore} selected={selected} />
-        </span>
       </button>
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -128,39 +129,5 @@ export function SortableCandidateRow({
         </DropdownMenuContent>
       </DropdownMenu>
     </li>
-  );
-}
-
-function ScoreBadge({
-  avg,
-  selected,
-}: {
-  avg: number | null;
-  selected: boolean;
-}) {
-  if (avg === null) {
-    return (
-      <span
-        className={cn(
-          "shrink-0 text-xs",
-          selected ? "text-accent-foreground/80" : "text-muted-foreground",
-        )}
-        aria-label="未評価"
-      >
-        —
-      </span>
-    );
-  }
-  return (
-    <span
-      className={cn(
-        "inline-flex shrink-0 items-center gap-0.5 text-xs tabular-nums",
-        selected ? "text-accent-foreground" : "text-foreground/80",
-      )}
-      aria-label={`平均スコア ${avg.toFixed(1)} / 5`}
-    >
-      <Star aria-hidden className="size-3 fill-current" />
-      {avg.toFixed(1)}
-    </span>
   );
 }

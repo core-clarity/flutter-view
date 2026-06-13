@@ -19,7 +19,6 @@ import {
   type Scorecard,
   type StageStatus,
   AXIS_ORDER,
-  STAGE_ORDER,
 } from "@/lib/schema";
 
 /**
@@ -72,14 +71,9 @@ export function getCandidateAverageScore(candidate: Candidate): number | null {
  * 空配列が返った場合は「コメントはまだ記入されていません」の placeholder を表示する。
  */
 export function getCommentedScorecards(scorecards: Scorecard[]): Scorecard[] {
-  const stageIndex = Object.fromEntries(
-    STAGE_ORDER.map((s, i) => [s, i]),
-  ) as Record<string, number>;
-  return scorecards
-    .filter(
-      (s) => deriveStageStatus(s.date, s.decision) === "done" && s.comment,
-    )
-    .sort((a, b) => (stageIndex[a.stage] ?? 0) - (stageIndex[b.stage] ?? 0));
+  return scorecards.filter(
+    (s) => deriveStageStatus(s.date, s.decision) === "done" && s.comment,
+  );
 }
 
 /**
@@ -95,24 +89,30 @@ export function getScorecardsAverageScore(
   return calculateAverageScore(latest.axisScores);
 }
 
+/** 「進行中」は完了扱いにしない（Pane 3 の StageIcon 等） */
+export const IN_PROGRESS_DECISION = "進行中" as const;
+
 /**
  * Scorecard の date / decision の有無から状態を派生計算する。
  *
  * ADR-0015 §17.1 追加決定 I で `Scorecard.status` フィールドを廃止したため、
  * 表示時に都度この関数で導出する MUST。
  *
- *   - decision あり (truthy)               → done   (実施済 + 結果あり)
- *   - decision なし、date あり (truthy)    → planned (予定済)
- *   - 両方なし                              → pending (未着手)
+ *   - decision が「進行中」                    → planned (作業中)
+ *   - decision あり（上記以外・truthy）       → done   (実施済 + 結果あり)
+ *   - decision なし、date あり (truthy)       → planned (予定済)
+ *   - 両方なし                                 → pending (未着手)
  *
- * Pane 3 選考フローカードの StageIcon、コメント抽出のフィルタ、ヘッダー帯の
- * ★ スコア表示など、status を必要とするすべての表示で使う。
+ * Pane 3 選考フローカードの StageIcon、コメント抽出のフィルタなど、
+ * status を必要とするすべての表示で使う。
  */
 export function deriveStageStatus(
   date: string,
   decision?: string,
 ): StageStatus {
-  if (decision && decision.trim() !== "") return "done";
-  if (date && date.trim() !== "") return "planned";
+  const trimmedDecision = decision?.trim() ?? "";
+  if (trimmedDecision === IN_PROGRESS_DECISION) return "planned";
+  if (trimmedDecision !== "") return "done";
+  if (date.trim() !== "") return "planned";
   return "pending";
 }

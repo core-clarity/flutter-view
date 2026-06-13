@@ -1,0 +1,5 @@
+-- v2: bpr_stages 追加 / stage_id 化 / materials 化
+-- departments 等の既存 PK は触らない（drizzle-kit push の FK 依存エラー回避）
+--
+-- 実行: npm run db:migrate
+-- （Neon は複数ステートメント不可のため、実体は scripts/migrate.ts の STEPS 配列）

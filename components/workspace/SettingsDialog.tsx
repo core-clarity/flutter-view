@@ -54,13 +54,13 @@ export function SettingsDialogContent({
         <DialogHeader>
           <DialogTitle>ワークスペース設定</DialogTitle>
           <DialogDescription>
-            事業部やワークスペース名を管理します
+            本部グループやワークスペース名を管理します
           </DialogDescription>
         </DialogHeader>
 
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor="settings-new-dept">事業部</FieldLabel>
+            <FieldLabel htmlFor="settings-new-dept">本部グループ</FieldLabel>
             <ScrollArea className="max-h-48">
               <div className="divide-y divide-border rounded-lg border border-border">
                 {departments.map((dept) => (
@@ -85,7 +85,7 @@ export function SettingsDialogContent({
                 ))}
                 {departments.length === 0 && (
                   <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-                    事業部がありません
+                    本部グループがありません
                   </div>
                 )}
               </div>
@@ -93,7 +93,7 @@ export function SettingsDialogContent({
             <InputGroup>
               <InputGroupInput
                 id="settings-new-dept"
-                placeholder="新しい事業部名"
+                placeholder="新しい本部グループ名"
                 value={newDeptName}
                 onChange={(e) => setNewDeptName(e.target.value)}
                 onKeyDown={(e) => {
@@ -120,7 +120,7 @@ export function SettingsDialogContent({
             <FieldLabel htmlFor="settings-workspace-name">
               ワークスペース名
             </FieldLabel>
-            <Input id="settings-workspace-name" defaultValue="採用管理" />
+            <Input id="settings-workspace-name" defaultValue="メタ認知〜主語が切り替わる世界〜" />
           </Field>
         </FieldGroup>
 
@@ -134,7 +134,7 @@ export function SettingsDialogContent({
         onOpenChange={(open) => {
           if (!open) setDeleteDeptTarget(null);
         }}
-        title="事業部を削除しますか？"
+        title="本部グループを削除しますか？"
         itemName={deleteDeptTarget?.name ?? ""}
         onConfirm={() => {
           if (deleteDeptTarget) {

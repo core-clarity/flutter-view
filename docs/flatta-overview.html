@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Flutter — 3,000ft BPR | ワークスペース設計概要</title>
+<style>
+  :root {
+    --bg: oklch(0.29 0.007 242);
+    --surface: oklch(0.32 0.009 240);
+    --surface2: oklch(0.35 0.009 240);
+    --border: oklch(0.43 0.011 238);
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --amber: #f0a020;
+    --amber-dim: #f0a02033;
+    --red: #f85149;
+    --red-dim: #f8514922;
+    --orange: #d29922;
+    --orange-dim: #d2992222;
+    --yellow: #e3b341;
+    --yellow-dim: #e3b34122;
+    --slate: #6e7681;
+    --slate-dim: #6e768122;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --blue-dim: #58a6ff22;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  a { color: var(--blue); text-decoration: none; }
+
+  /* ── Layout ── */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(160deg, oklch(0.27 0.007 242) 0%, oklch(0.33 0.009 240) 50%, oklch(0.27 0.007 242) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 72px 0 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, #f0a02018 0%, transparent 70%);
+    pointer-events: none;
+  }
+  /* フラッタ画像ホバー原寸大表示 */
+  .flatta-img-wrap { position: relative; display: inline-flex; cursor: zoom-in; }
+  .flatta-img-wrap .flatta-fullsize {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    max-width: 88vw;
+    max-height: 88vh;
+    width: auto; height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+    border: 3px solid var(--amber);
+    /* 大きな box-shadow でバックドロップを擬似的に実現 */
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 24px 64px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
+  .flatta-img-wrap:hover .flatta-fullsize { display: block; }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 16px;
+  }
+  .hero-title {
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1.05;
+    margin-bottom: 10px;
+  }
+  .hero-title span { color: var(--amber); }
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .hero-tagline {
+    display: inline-block;
+    background: var(--amber-dim);
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 12px;
+    letter-spacing: .08em;
+    margin-top: 12px;
+  }
+
+  /* ── Section ── */
+  section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+  .section-label {
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin-bottom: 8px;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .lead {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-bottom: 36px;
+    max-width: 680px;
+  }
+
+  /* ── Screenshot section: silver accent ── */
+  .section-screenshot {
+    background: linear-gradient(160deg,
+      rgba(150,180,200,0.07) 0%,
+      rgba(120,152,172,0.04) 60%,
+      rgba(100,130,150,0.02) 100%);
+    border-top: 1px solid rgba(165,192,210,0.22);
+    border-bottom: 1px solid rgba(140,168,188,0.13) !important;
+  }
+  .section-screenshot .section-label {
+    color: #7fb0c8;
+    letter-spacing: .22em;
+  }
+  .section-screenshot h2 {
+    background: linear-gradient(90deg, #ccdee9 0%, #8ab2c6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .section-screenshot .lead {
+    color: #7c9eb2;
+  }
+  .screenshot-frame {
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid rgba(160,192,215,0.42);
+    box-shadow:
+      0 0 0 1px rgba(160,195,218,0.10),
+      0 8px 40px rgba(120,165,195,0.20),
+      0 24px 80px rgba(100,140,170,0.10);
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+  }
+  .card-grid {
+    display: grid;
+    gap: 16px;
+  }
+  .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 640px) {
+    .card-grid-2, .card-grid-4 { grid-template-columns: 1fr; }
+  }
+
+  /* ── Badge ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+  .badge-red    { background: var(--red-dim);    color: var(--red);    border-color: var(--red); }
+  .badge-orange { background: var(--orange-dim); color: var(--orange); border-color: var(--orange); }
+  .badge-yellow { background: var(--yellow-dim); color: var(--yellow); border-color: var(--yellow); }
+  .badge-slate  { background: var(--slate-dim);  color: var(--slate);  border-color: var(--slate); }
+  .badge-blue   { background: var(--blue-dim);   color: var(--blue);   border-color: var(--blue); }
+  .badge-green  { background: #3fb95022; color: var(--green); border-color: var(--green); }
+  .badge-amber  { background: var(--amber-dim);  color: var(--amber);  border-color: var(--amber); }
+
+  /* ── Status chips ── */
+  .chip {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .chip-done { background: #3fb95022; color: var(--green); }
+  .chip-wip  { background: var(--amber-dim); color: var(--amber); }
+  .chip-next { background: var(--blue-dim); color: var(--blue); }
+
+  /* ── Tag ── */
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    color: var(--muted);
+  }
+
+  /* ── Util ── */
+  .mt-2 { margin-top: 8px; }
+  .mt-3 { margin-top: 12px; }
+  .mt-4 { margin-top: 16px; }
+  .mt-6 { margin-top: 24px; }
+  .mt-8 { margin-top: 32px; }
+  .gap-2 { gap: 8px; }
+  .flex { display: flex; }
+  .flex-wrap { flex-wrap: wrap; }
+  .items-center { align-items: center; }
+  .text-muted { color: var(--muted); font-size: 0.875rem; }
+  .text-sm { font-size: 0.875rem; }
+  .font-mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.8rem; }
+
+  /* ── Pane diagram ── */
+  .pane-diagram {
+    display: grid;
+    grid-template-columns: 180px 200px 1fr 180px;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-size: 0.82rem;
+    min-height: 320px;
+  }
+  .pane {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .pane:last-child { border-right: none; }
+  .pane-header {
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pane-body { padding: 12px 14px; flex: 1; }
+  .pane-item {
+    padding: 6px 8px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    font-size: 0.78rem;
+  }
+  .pane-item.selected { border-color: var(--amber); background: var(--amber-dim); }
+  .pane-num {
+    width: 18px; height: 18px;
+    background: var(--amber);
+    color: #000;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Data model ── */
+  .datamodel-node {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+  }
+  .datamodel-node h4 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .datamodel-node .fields { color: var(--muted); font-size: 0.75rem; }
+
+  /* ── Timeline ── */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 8px; top: 6px; bottom: 0;
+    width: 2px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+  .timeline-item { position: relative; margin-bottom: 24px; }
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -24px; top: 6px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--bg);
+  }
+  .timeline-item.done::before  { background: var(--green);  border-color: var(--green); }
+  .timeline-item.wip::before   { background: var(--amber);  border-color: var(--amber); box-shadow: 0 0 8px var(--amber); }
+  .timeline-item.next::before  { background: var(--blue);   border-color: var(--blue); }
+  .timeline-date { font-size: 0.78rem; color: var(--muted); margin-bottom: 2px; }
+  .timeline-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+  .timeline-body { font-size: 0.82rem; color: var(--muted); }
+
+  /* ── Judgment row ── */
+  .judgment-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 8px;
+  }
+  .judgment-badges { display: flex; gap: 4px; flex-wrap: wrap; flex-shrink: 0; }
+
+  /* ── Owner chip ── */
+  .owner {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+  }
+  .owner.me { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
+  .owner.stalled { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  /* ── SVG container ── */
+  .svg-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 32px 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+  HERO
+════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-eyebrow">BPR Project management Tool</div>
+    <h1 class="hero-title" style="display:flex;align-items:center;justify-content:center;gap:14px">
+      <span>Flutter</span>
+      <span class="flatta-img-wrap">
+        <img src="img/フラッタ.jpg" alt="フラッタ"
+             style="height:56px;width:56px;border-radius:50%;object-fit:cover;border:2px solid #f0a020;opacity:0.88;vertical-align:middle;flex-shrink:0">
+        <img src="img/フラッタ.jpg" alt="フラッタ 原寸大" class="flatta-fullsize">
+      </span>
+    </h1>
+    <p class="hero-sub">メタ認知〜主語が切り替わる世界〜</p>
+    <div class="hero-tagline">3,000ft BPR</div>
+
+    <!-- Moth SVG flying above a cityscape -->
+    <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg"
+      style="width:100%;max-width:700px;margin:32px auto 0;display:block;">
+      <defs>
+        <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#f0a020" stop-opacity=".3"/>
+          <stop offset="100%" stop-color="#f0a020" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="blur2">
+          <feGaussianBlur stdDeviation="2"/>
+        </filter>
+      </defs>
+
+      <!-- ground buildings (地上の現場) -->
+      <!-- sky gradient -->
+      <rect x="0" y="0" width="700" height="220" fill="#0d1117"/>
+      <!-- stars -->
+      <circle cx="60"  cy="20" r="1" fill="#8b949e" opacity=".6"/>
+      <circle cx="140" cy="12" r="1" fill="#8b949e" opacity=".4"/>
+      <circle cx="250" cy="18" r="1.2" fill="#e6edf3" opacity=".5"/>
+      <circle cx="380" cy="8"  r="1" fill="#8b949e" opacity=".6"/>
+      <circle cx="490" cy="22" r="1" fill="#e6edf3" opacity=".4"/>
+      <circle cx="600" cy="14" r="1.2" fill="#8b949e" opacity=".5"/>
+      <circle cx="660" cy="28" r="1" fill="#8b949e" opacity=".4"/>
+
+      <!-- horizon line -->
+      <line x1="0" y1="145" x2="700" y2="145" stroke="#30363d" stroke-width="1"/>
+
+      <!-- buildings silhouette -->
+      <rect x="30"  y="105" width="40" height="40" rx="2" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <rect x="40"  y="95"  width="20" height="10" rx="1" fill="#1e2530"/>
+      <rect x="82"  y="115" width="28" height="30" rx="2" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <rect x="120" y="100" width="50" height="45" rx="2" fill="#1e2530" stroke="#30363d" stroke-width="1"/>
+      <!-- window lights in building -->
+      <rect x="127" y="108" width="8" height="6" rx="1" fill="#f0a020" opacity=".5"/>
+      <rect x="139" y="108" width="8" height="6" rx="1" fill="#58a6ff" opacity=".4"/>
+      <rect x="127" y="120" width="8" height="6" rx="1" fill="#58a6ff" opacity=".3"/>
+      <rect x="139" y="120" width="8" height="6" rx="1" fill="#f0a020" opacity=".4"/>
+      <rect x="127" y="132" width="8" height="6" rx="1" fill="#f85149" opacity=".3"/>
+
+      <rect x="182" y="118" width="35" height="27" rx="2" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <rect x="228" y="98"  width="60" height="47" rx="2" fill="#1e2530" stroke="#30363d" stroke-width="1"/>
+      <rect x="235" y="106" width="9"  height="7"  rx="1" fill="#58a6ff" opacity=".4"/>
+      <rect x="250" y="106" width="9"  height="7"  rx="1" fill="#f0a020" opacity=".5"/>
+      <rect x="265" y="106" width="9"  height="7"  rx="1" fill="#3fb950" opacity=".3"/>
+      <rect x="235" y="120" width="9"  height="7"  rx="1" fill="#f0a020" opacity=".3"/>
+      <rect x="250" y="120" width="9"  height="7"  rx="1" fill="#58a6ff" opacity=".5"/>
+      <rect x="265" y="120" width="9"  height="7"  rx="1" fill="#f85149" opacity=".4"/>
+
+      <rect x="298" y="112" width="30" height="33" rx="2" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <rect x="338" y="90"  width="55" height="55" rx="2" fill="#1e2530" stroke="#30363d" stroke-width="1"/>
+      <rect x="346" y="100" width="10" height="8"  rx="1" fill="#58a6ff" opacity=".5"/>
+      <rect x="362" y="100" width="10" height="8"  rx="1" fill="#f0a020" opacity=".4"/>
+      <rect x="346" y="114" width="10" height="8"  rx="1" fill="#3fb950" opacity=".4"/>
+      <rect x="362" y="114" width="10" height="8"  rx="1" fill="#58a6ff" opacity=".3"/>
+      <rect x="346" y="128" width="10" height="8"  rx="1" fill="#f85149" opacity=".3"/>
+      <rect x="362" y="128" width="10" height="8"  rx="1" fill="#f0a020" opacity=".3"/>
+
+      <rect x="404" y="120" width="32" height="25" rx="2" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <rect x="446" y="105" width="45" height="40" rx="2" fill="#1e2530" stroke="#30363d" stroke-width="1"/>
+      <rect x="502" y="115" width="38" height="30" rx="2" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <rect x="550" y="100" width="50" height="45" rx="2" fill="#1e2530" stroke="#30363d" stroke-width="1"/>
+      <rect x="558" y="110" width="9"  height="7"  rx="1" fill="#f0a020" opacity=".5"/>
+      <rect x="572" y="110" width="9"  height="7"  rx="1" fill="#58a6ff" opacity=".4"/>
+      <rect x="610" y="115" width="30" height="30" rx="2" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <rect x="648" y="108" width="28" height="37" rx="2" fill="#1e2530" stroke="#30363d" stroke-width="1"/>
+
+      <!-- ground / roads -->
+      <rect x="0" y="145" width="700" height="75" fill="#0d1117"/>
+      <line x1="0" y1="165" x2="700" y2="165" stroke="#30363d" stroke-width=".5" stroke-dasharray="8,6"/>
+      <line x1="0" y1="185" x2="700" y2="185" stroke="#30363d" stroke-width=".5" stroke-dasharray="8,6"/>
+
+      <!-- ground-level people / bubbles -->
+      <!-- person 1 -->
+      <circle cx="90" cy="162" r="5" fill="#8b949e"/>
+      <rect x="82" y="169" width="16" height="10" rx="3" fill="#8b949e"/>
+      <rect x="60" y="148" width="60" height="16" rx="4" fill="#1e2530" stroke="#f85149" stroke-width="1"/>
+      <text x="90" y="158.5" text-anchor="middle" font-size="7" fill="#f85149">会社の悪口！</text>
+
+      <!-- person 2 -->
+      <circle cx="240" cy="162" r="5" fill="#8b949e"/>
+      <rect x="232" y="169" width="16" height="10" rx="3" fill="#8b949e"/>
+      <rect x="205" y="148" width="70" height="16" rx="4" fill="#1e2530" stroke="#f85149" stroke-width="1"/>
+      <text x="240" y="158.5" text-anchor="middle" font-size="7" fill="#f85149">誰が悪いんだ</text>
+
+      <!-- person 3 -->
+      <circle cx="420" cy="162" r="5" fill="#8b949e"/>
+      <rect x="412" y="169" width="16" height="10" rx="3" fill="#8b949e"/>
+      <rect x="388" y="148" width="64" height="16" rx="4" fill="#1e2530" stroke="#f85149" stroke-width="1"/>
+      <text x="420" y="158.5" text-anchor="middle" font-size="7" fill="#f85149">なぜ変えるの？</text>
+
+      <!-- person 4 -->
+      <circle cx="580" cy="162" r="5" fill="#8b949e"/>
+      <rect x="572" y="169" width="16" height="10" rx="3" fill="#8b949e"/>
+      <rect x="548" y="148" width="64" height="16" rx="4" fill="#1e2530" stroke="#30363d" stroke-width="1"/>
+      <text x="580" y="158.5" text-anchor="middle" font-size="7" fill="#3fb950">対応中...</text>
+
+      <!-- Flutter altitude line -->
+      <line x1="0" y1="52" x2="700" y2="52" stroke="#f0a020" stroke-width=".8" stroke-dasharray="6,4" opacity=".4"/>
+      <text x="680" y="48" text-anchor="end" font-size="8" fill="#f0a020" opacity=".7">3,000 ft</text>
+
+      <!-- glow behind dragonfly -->
+      <ellipse cx="350" cy="48" rx="52" ry="28" fill="url(#glow)"/>
+
+      <!-- Flutter dragonfly body (simplified) -->
+      <g transform="translate(350,48)">
+        <!-- upper left wing (long, horizontal, slightly angled up) -->
+        <path d="M -3,-2 C -12,-22 -46,-20 -52,-6 C -56,4 -22,10 -3,4 Z"
+              fill="#f0a020" opacity=".82"/>
+        <!-- upper right wing -->
+        <path d="M 3,-2 C 12,-22 46,-20 52,-6 C 56,4 22,10 3,4 Z"
+              fill="#f0a020" opacity=".82"/>
+        <!-- lower left wing (slightly shorter, angled downward) -->
+        <path d="M -3,4 C -16,6 -44,16 -42,26 C -40,34 -16,22 -3,10 Z"
+              fill="#d29922" opacity=".78"/>
+        <!-- lower right wing -->
+        <path d="M 3,4 C 16,6 44,16 42,26 C 40,34 16,22 3,10 Z"
+              fill="#d29922" opacity=".78"/>
+        <!-- wing veins upper -->
+        <line x1="-3" y1="0" x2="-48" y2="-5" stroke="#0d1117" stroke-width=".6" opacity=".32"/>
+        <line x1="-8" y1="-6" x2="-40" y2="-16" stroke="#0d1117" stroke-width=".5" opacity=".22"/>
+        <line x1="3" y1="0" x2="48" y2="-5" stroke="#0d1117" stroke-width=".6" opacity=".32"/>
+        <line x1="8" y1="-6" x2="40" y2="-16" stroke="#0d1117" stroke-width=".5" opacity=".22"/>
+        <!-- wing veins lower -->
+        <line x1="-3" y1="6" x2="-38" y2="22" stroke="#0d1117" stroke-width=".5" opacity=".22"/>
+        <line x1="3" y1="6" x2="38" y2="22" stroke="#0d1117" stroke-width=".5" opacity=".22"/>
+        <!-- long segmented abdomen -->
+        <path d="M -2.5,4 L -2,36 Q 0,40 2,36 L 2.5,4 Z" fill="#f0a020" opacity=".9"/>
+        <!-- abdomen segments -->
+        <line x1="-2"   y1="10" x2="2"   y2="10" stroke="#0d1117" stroke-width=".7" opacity=".4"/>
+        <line x1="-2.5" y1="16" x2="2.5" y2="16" stroke="#0d1117" stroke-width=".7" opacity=".4"/>
+        <line x1="-2.5" y1="22" x2="2.5" y2="22" stroke="#0d1117" stroke-width=".7" opacity=".4"/>
+        <line x1="-2"   y1="28" x2="2"   y2="28" stroke="#0d1117" stroke-width=".7" opacity=".4"/>
+        <line x1="-2"   y1="34" x2="2"   y2="34" stroke="#0d1117" stroke-width=".7" opacity=".4"/>
+        <!-- thorax -->
+        <ellipse cx="0" cy="0" rx="3.5" ry="5" fill="#e6edf3" opacity=".85"/>
+        <!-- head (with large compound eyes) -->
+        <circle cx="0" cy="-9" r="5" fill="#e6edf3" opacity=".9"/>
+        <!-- compound eyes -->
+        <ellipse cx="-3.2" cy="-9.5" rx="2.8" ry="3" fill="#f0a020" opacity=".9"/>
+        <ellipse cx="3.2"  cy="-9.5" rx="2.8" ry="3" fill="#f0a020" opacity=".9"/>
+        <!-- eye highlights -->
+        <circle cx="-4" cy="-10.5" r=".8" fill="#fff" opacity=".45"/>
+        <circle cx="4"  cy="-10.5" r=".8" fill="#fff" opacity=".45"/>
+        <!-- very short antennae (dragonfly has tiny ones) -->
+        <line x1="-1.5" y1="-13.5" x2="-3" y2="-17" stroke="#f0a020" stroke-width=".8" opacity=".7"/>
+        <line x1="1.5"  y1="-13.5" x2="3"  y2="-17" stroke="#f0a020" stroke-width=".8" opacity=".7"/>
+      </g>
+
+      <!-- Flutter label -->
+      <text x="350" y="22" text-anchor="middle" font-size="12" font-weight="800"
+            fill="#f0a020" letter-spacing="3">Flutter</text>
+
+      <!-- sight lines from Flutter down to buildings -->
+      <line x1="330" y1="60" x2="175" y2="140" stroke="#f0a020" stroke-width=".5"
+            stroke-dasharray="3,3" opacity=".3"/>
+      <line x1="350" y1="62" x2="360" y2="140" stroke="#f0a020" stroke-width=".5"
+            stroke-dasharray="3,3" opacity=".3"/>
+      <line x1="370" y1="60" x2="540" y2="140" stroke="#f0a020" stroke-width=".5"
+            stroke-dasharray="3,3" opacity=".3"/>
+
+      <!-- speech bubble from Flutter -->
+      <rect x="395" y="28" width="130" height="22" rx="5"
+            fill="#1e2530" stroke="#f0a020" stroke-width="1"/>
+      <polygon points="410,50 415,56 420,50" fill="#1e2530"/>
+      <polygon points="410,50 415,57 420,50" fill="#f0a020" opacity=".6"/>
+      <text x="460" y="42" text-anchor="middle" font-size="8.5" fill="#f0a020">構造が見える、事実で語る</text>
+
+      <!-- labels -->
+      <text x="350" y="210" text-anchor="middle" font-size="9" fill="#8b949e">地上視点 — 感情・属人・個別判断</text>
+    </svg>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+  SECTION 1: コンセプト
+════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">Concept</div>
+    <h2>高度変換装置としてのFlutter</h2>
+    <p class="lead" style="max-width:100%">地上視点（感情・属人・個別判断）を空中視点（法令・業界標準・内部統制による客観的事実）に変換し、社内の構造的課題をメタ認知的に可視化する。</p>
+
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div class="flex items-center gap-2 mt-0" style="margin-bottom:10px">
+          <span style="font-size:1.4rem">🏢</span>
+          <h3 style="margin:0">地上視点（感情レベル）</h3>
+        </div>
+        <ul style="color:var(--muted);font-size:0.88rem;padding-left:18px;line-height:2">
+          <li>「会社の悪口を言っている」</li>
+          <li>「あの部署が悪い」</li>
+          <li>「なぜ変えるんだ」</li>
+          <li>「誰が悪いんだ」</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:var(--amber)">
+        <div class="flex items-center gap-2" style="margin-bottom:10px">
+          <span style="font-size:1.4rem">🦋</span>
+          <h3 style="margin:0;color:var(--amber)">空中視点 ― Flutterの目（事実レベル）</h3>
+        </div>
+        <ul style="font-size:0.88rem;padding-left:18px;line-height:2;color:var(--text)">
+          <li>「下請法上グレーゾーンの業務が存在している」</li>
+          <li>「このシステムに相互牽制機能がなく構造的リスクがある」</li>
+          <li>「この機能は業界慣行上必須なので除外不可（根拠あり）」</li>
+          <li>「今ボールは経理部マネージャにある」</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card mt-4" style="border-color:var(--border);background:var(--surface2);margin-top:16px">
+      <p style="font-size:0.88rem;color:var(--muted)">
+        <strong style="color:var(--text)">解決する課題：</strong>
+        BPR business process reengnieeringで「メタ認知的」なものの見方皆ができるようにする。<BR>メタ認知的とは、客観性の強いものの見方。皆がメタ認知的に業務課題に取り組めれば衝突は起きにくい。
+      </p>
+    </div>
+
+    <div class="card mt-4" style="border-color:var(--border);background:var(--surface2);margin-top:16px">
+      <p style="font-size:0.88rem;color:var(--muted)">
+        <strong style="color:var(--text)">工夫した点：</strong>
+        BPRは時に協力が得られにくかったり、変化への抵抗に直面する、手段ありき(特にシステムありき)になり本質を見失いがち。「批判」ではなく「状態」<BR>「犯人」ではなく「ボールの所在」<BR>「主観」ではなく「客観」
+      </p>
+    </div>
+
+    <div class="card mt-4" style="border-color:var(--border);background:var(--surface2);margin-top:12px">
+      <p style="font-size:0.88rem;color:var(--muted)">
+        <strong style="color:var(--text)">開発する意味：</strong>
+        既存サービスのRedmine、Backlog、Asana、Trello等では実現できない、「視点の切替」を「俯瞰（Flutter-view）」することに重点を置きます
+      </p>
+    </div>
+
+    <div class="card mt-4" style="border-color:var(--border);background:var(--surface2);margin-top:12px">
+      <p style="font-size:0.88rem;color:var(--muted)">
+        <strong style="color:var(--text)">苦労した点：</strong>
+        プロジェクトマネジメントツールは多数の製品・サービスがすでにあるため、自分が欲しくかつ既存のツールではカバーできないことを言語化しビジュアル化するのに時間を要しました
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  SECTION 2: 4ペイン構造
+════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">Architecture</div>
+    <h2>4ペイン構造</h2>
+    <p class="lead">採用管理サンプルの「部署→候補者→詳細→ステージ」を「要チェック業務→業務システム→BPRタスク→空中視点メモ」に置き換えた道A踏襲ルート。</p>
+
+    <div class="pane-diagram" style="overflow-x:auto">
+      <!-- Pane 1 -->
+      <div class="pane" style="min-width:160px">
+        <div class="pane-header">
+          <div class="pane-num">1</div>
+          要チェック業務
+        </div>
+        <div class="pane-body">
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px">財務本部</div>
+          <div class="pane-item selected">
+            <div>支払業務（3社合算）</div>
+            <div style="margin-top:3px"><span class="badge badge-red" style="font-size:9px">重複の可能性</span></div>
+          </div>
+          <div class="pane-item">
+            <div>月次残高照合</div>
+            <div style="margin-top:3px"><span class="badge badge-slate" style="font-size:9px">目的不明</span></div>
+          </div>
+          <div style="font-size:0.72rem;color:var(--muted);margin:8px 0">営業本部</div>
+          <div class="pane-item">
+            <div>受注登録（二重入力）</div>
+            <div style="margin-top:3px"><span class="badge badge-red" style="font-size:9px">重複の可能性</span></div>
+          </div>
+          <div style="font-size:0.72rem;color:var(--muted);margin:8px 0;font-style:italic;font-size:0.7rem">↓ 選択でPane2に連動（n:m）</div>
+        </div>
+      </div>
+
+      <!-- Pane 2 -->
+      <div class="pane" style="min-width:180px">
+        <div class="pane-header">
+          <div class="pane-num">2</div>
+          関連業務システム
+        </div>
+        <div class="pane-body">
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px">「支払業務（3社合算）」に紐づく</div>
+          <div class="pane-item">
+            <div>基幹ERPシステム</div>
+            <div class="mt-2"><span class="tag" style="font-size:9px">オンプレ / Oracle</span></div>
+          </div>
+          <div class="pane-item">
+            <div>会計システム（FY Cloud）</div>
+            <div class="mt-2"><span class="tag" style="font-size:9px">SaaS</span></div>
+          </div>
+          <div class="pane-item">
+            <div>帳票出力システム</div>
+            <div class="mt-2"><span class="tag" style="font-size:9px">内製 / 保守なし</span></div>
+          </div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-top:8px;font-style:italic">↓ 選択でPane4に根拠表示</div>
+        </div>
+      </div>
+
+      <!-- Pane 3 (main) -->
+      <div class="pane" style="background:var(--surface)">
+        <div class="pane-header" style="background:var(--surface2)">
+          <div class="pane-num">3</div>
+          BPR進行タスク <span style="margin-left:4px;font-size:0.7rem;color:var(--muted);font-weight:400">（メインペイン）</span>
+        </div>
+        <div class="pane-body">
+          <div style="margin-bottom:10px">
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px">ヒアリング</div>
+            <div class="pane-item" style="border-color:var(--blue)">
+              <div style="font-size:0.8rem;font-weight:600">支払業務の現状フロー把握</div>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <span class="owner me">情シス（私）</span>
+              </div>
+            </div>
+            <div class="pane-item selected">
+              <div style="font-size:0.8rem;font-weight:600">支払業務（3社合算）の現状フロー可視化</div>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <span class="badge badge-red" style="font-size:9px">⚖ 法令</span>
+                <span class="badge badge-orange" style="font-size:9px">🛡 統制</span>
+                <span class="badge badge-orange" style="font-size:9px">🎯 経営</span>
+              </div>
+              <div class="mt-2"><span class="owner me">情シス（私）</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px">課題抽出</div>
+            <div class="pane-item">
+              <div style="font-size:0.8rem;font-weight:600">受注登録の二重入力解消方針策定</div>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <span class="badge badge-orange" style="font-size:9px">🛡 統制</span>
+                <span class="badge badge-orange" style="font-size:9px">🎯 経営</span>
+              </div>
+              <div class="mt-2"><span class="owner me">情シス（私）</span></div>
+            </div>
+          </div>
+          <div style="margin-top:10px">
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px">要合意MTG</div>
+            <div class="pane-item" style="border-color:var(--red);opacity:.7">
+              <div style="font-size:0.8rem;font-weight:600">BPR推進方針の経営承認取得</div>
+              <div class="mt-2"><span class="owner stalled">役員（承認待ち）⚠</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pane 4 -->
+      <div class="pane" style="min-width:160px">
+        <div class="pane-header">
+          <div class="pane-num">4</div>
+          空中視点メモ
+        </div>
+        <div class="pane-body">
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px">「支払業務フロー可視化」に紐づく</div>
+
+          <div style="padding:8px;border-radius:6px;border:1px solid var(--red);background:var(--red-dim);margin-bottom:6px;font-size:0.75rem">
+            <div class="badge badge-red" style="margin-bottom:4px;font-size:9px">⚖ 法令リスク</div>
+            <div style="font-weight:600;font-size:0.78rem">下請法：支払期日の遵守義務</div>
+            <div style="color:var(--muted);font-size:0.72rem;margin-top:3px">60日以内の支払義務。現状は記憶頼りで管理...</div>
+          </div>
+
+          <div style="padding:8px;border-radius:6px;border:1px solid var(--orange);background:var(--orange-dim);margin-bottom:6px;font-size:0.75rem">
+            <div class="badge badge-orange" style="margin-bottom:4px;font-size:9px">🛡 内部統制</div>
+            <div style="font-weight:600;font-size:0.78rem">相互牽制機能の欠如（属人化）</div>
+            <div style="color:var(--muted);font-size:0.72rem;margin-top:3px">J-SOX上、第三者検証が不可能な状態...</div>
+          </div>
+
+          <div style="padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);font-size:0.75rem">
+            <div class="badge badge-amber" style="margin-bottom:4px;font-size:9px">🎯 経営方針</div>
+            <div style="font-weight:600;font-size:0.78rem">DX推進・紙ゼロ方針（2026中計）</div>
+            <div style="color:var(--muted);font-size:0.72rem;margin-top:3px">本タスクはDX推進と直結、優先度高...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p style="color:var(--muted);font-size:0.8rem;margin-top:10px;text-align:center">
+      ← Pane 1選択 → Pane 2に関連システムが連動（n:m）　／　Pane 2 or Pane 3選択 → Pane 4に根拠が連動
+    </p>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  SECTION 3: Screenshot
+════════════════════════════════════════════ -->
+<section class="section-screenshot">
+  <div class="container">
+    <div class="section-label">Screenshot</div>
+    <h2>実際の画面</h2>
+    <p class="lead">Flutter View の現在の画面（ダークモード）。4ペイン構造で業務改善をメタ認知的に管理する。</p>
+    <div class="screenshot-frame">
+      <img src="img/Flutter_shot1.png" alt="Flutter View 実際の画面" style="width:100%;display:block">
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  SECTION 4: 判定バッジシステム
+════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">Judgment System</div>
+    <h2>自動判定バッジ</h2>
+    <p class="lead">各BPRタスクが「何に照らして重要か/NGか」を色とアイコンで自動可視化。マウスオーバーで根拠タイトルがツールチップ表示される。</p>
+
+    <div class="card-grid card-grid-2">
+      <div>
+        <h3 class="text-sm" style="margin-bottom:12px;color:var(--muted)">バッジ種別と判定根拠</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:500">バッジ</th>
+              <th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:500">色</th>
+              <th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:500">アイコン</th>
+              <th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:500">発動条件</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:8px"><span class="badge badge-red">⚖ 法令</span></td>
+              <td style="padding:8px;color:var(--red)">赤</td>
+              <td style="padding:8px;color:var(--muted)">Scale（天秤）</td>
+              <td style="padding:8px;color:var(--muted)">contextNote: 法令リスク</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:8px"><span class="badge badge-orange">🛡 統制</span></td>
+              <td style="padding:8px;color:var(--orange)">橙</td>
+              <td style="padding:8px;color:var(--muted)">ShieldAlert</td>
+              <td style="padding:8px;color:var(--muted)">contextNote: 内部統制</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:8px"><span class="badge badge-yellow">⚠ 慣行</span></td>
+              <td style="padding:8px;color:var(--yellow)">黄</td>
+              <td style="padding:8px;color:var(--muted)">AlertTriangle</td>
+              <td style="padding:8px;color:var(--muted)">contextNote: 業界慣行</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:8px"><span class="badge badge-slate">🚫 NG</span></td>
+              <td style="padding:8px;color:var(--slate)">灰</td>
+              <td style="padding:8px;color:var(--muted)">Ban</td>
+              <td style="padding:8px;color:var(--muted)">contextNote: ブラックリスト</td>
+            </tr>
+            <tr>
+              <td style="padding:8px"><span class="badge badge-amber">🎯 経営</span></td>
+              <td style="padding:8px;color:var(--amber)">橙</td>
+              <td style="padding:8px;color:var(--muted)">Target</td>
+              <td style="padding:8px;color:var(--muted)">managementPolicies.json に記載</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h3 class="text-sm" style="margin-bottom:12px;color:var(--muted)">タスク行の表示イメージ</h3>
+
+        <div class="judgment-row" style="border-color:var(--red)">
+          <div style="flex:1">
+            <div style="font-size:0.85rem;font-weight:600">支払業務（3社合算）の現状フロー可視化</div>
+            <div style="margin-top:6px" class="flex flex-wrap gap-2">
+              <span class="badge badge-red" title="下請法：支払期日の遵守義務">⚖ 法令</span>
+              <span class="badge badge-orange" title="相互牽制機能の欠如（合算ロジックの属人化）">🛡 統制</span>
+              <span class="badge badge-amber" title="DX推進・紙ゼロ方針（2026中計）">🎯 経営</span>
+            </div>
+          </div>
+          <span class="owner me">情シス（私）</span>
+        </div>
+
+        <div class="judgment-row" style="border-color:var(--orange)">
+          <div style="flex:1">
+            <div style="font-size:0.85rem;font-weight:600">受注登録の二重入力解消方針策定</div>
+            <div style="margin-top:6px" class="flex flex-wrap gap-2">
+              <span class="badge badge-orange" title="二重入力は誤差発生源かつトレーサビリティ欠如">🛡 統制</span>
+              <span class="badge badge-amber" title="コスト削減20%目標（FY2027）">🎯 経営</span>
+            </div>
+          </div>
+          <span class="owner me">情シス（私）</span>
+        </div>
+
+        <div class="judgment-row" style="opacity:.6">
+          <div style="flex:1">
+            <div style="font-size:0.85rem;font-weight:600">BPR推進方針の経営承認取得</div>
+            <div style="margin-top:4px;font-size:0.75rem;color:var(--muted)">判定根拠なし（承認フローのみ）</div>
+          </div>
+          <span class="owner stalled">役員（承認待ち）⚠</span>
+        </div>
+
+        <p style="margin-top:10px;font-size:0.78rem;color:var(--muted)">
+          ※ バッジにマウスオーバーで根拠タイトルのツールチップが表示される
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  SECTION 4: データモデル
+════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">Data Model</div>
+    <h2>データ構造（data/*.json）</h2>
+    <p class="lead">サーバーサイドでZodスキーマ検証後にWorkspaceコンポーネントへ渡すシードデータ。実装完了後にAPIやDB接続に差し替え予定。</p>
+
+    <!-- SVG データモデル図 -->
+    <div class="svg-wrap">
+      <svg viewBox="0 0 860 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#8b949e"/>
+          </marker>
+          <marker id="arr-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#f0a020"/>
+          </marker>
+        </defs>
+
+        <!-- bizItems (Pane1) -->
+        <rect x="20" y="40" width="160" height="80" rx="8" fill="#161b22" stroke="#f0a020" stroke-width="1.5"/>
+        <text x="100" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#f0a020">bizItems.json</text>
+        <text x="100" y="78" text-anchor="middle" font-size="9" fill="#8b949e">id, name, flags[]</text>
+        <text x="100" y="92" text-anchor="middle" font-size="9" fill="#8b949e">（本部・グループ・ユニット）</text>
+        <text x="100" y="108" text-anchor="middle" font-size="9" fill="#8b949e">Pane 1 / 要チェック業務</text>
+
+        <!-- bizSysLinks (n:m) -->
+        <rect x="230" y="120" width="140" height="60" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+        <text x="300" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#e6edf3">bizSysLinks.json</text>
+        <text x="300" y="158" text-anchor="middle" font-size="9" fill="#8b949e">bizId, sysId</text>
+        <text x="300" y="172" text-anchor="middle" font-size="9" fill="#8b949e">（n:m 紐づきテーブル）</text>
+
+        <!-- systems (Pane2) -->
+        <rect x="420" y="40" width="160" height="80" rx="8" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="500" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#58a6ff">systems.json</text>
+        <text x="500" y="78" text-anchor="middle" font-size="9" fill="#8b949e">id, name, archType</text>
+        <text x="500" y="92" text-anchor="middle" font-size="9" fill="#8b949e">mainDb, vendor</text>
+        <text x="500" y="108" text-anchor="middle" font-size="9" fill="#8b949e">Pane 2 / 業務システム</text>
+
+        <!-- bprTasks (Pane3) -->
+        <rect x="20" y="200" width="160" height="95" rx="8" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+        <text x="100" y="222" text-anchor="middle" font-size="11" font-weight="700" fill="#3fb950">bprTasks.json</text>
+        <text x="100" y="238" text-anchor="middle" font-size="9" fill="#8b949e">id, stage, owner, bizId</text>
+        <text x="100" y="252" text-anchor="middle" font-size="9" fill="#8b949e">profile.name（タスク名）</text>
+        <text x="100" y="266" text-anchor="middle" font-size="9" fill="#8b949e">scorecards[]（ステージ記録）</text>
+        <text x="100" y="280" text-anchor="middle" font-size="9" fill="#8b949e">Pane 3 / BPRタスク</text>
+
+        <!-- contextNotes (Pane4) -->
+        <rect x="420" y="200" width="160" height="95" rx="8" fill="#161b22" stroke="#d29922" stroke-width="1.5"/>
+        <text x="500" y="222" text-anchor="middle" font-size="11" font-weight="700" fill="#d29922">contextNotes.json</text>
+        <text x="500" y="238" text-anchor="middle" font-size="9" fill="#8b949e">id, refType（task|system）</text>
+        <text x="500" y="252" text-anchor="middle" font-size="9" fill="#8b949e">refId, noteType, title</text>
+        <text x="500" y="266" text-anchor="middle" font-size="9" fill="#8b949e">法令/内部統制/業界慣行/BL</text>
+        <text x="500" y="280" text-anchor="middle" font-size="9" fill="#8b949e">Pane 4 / 空中視点メモ</text>
+
+        <!-- managementPolicies -->
+        <rect x="640" y="120" width="190" height="80" rx="8" fill="#161b22" stroke="#f0a020" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="735" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#f0a020">managementPolicies.json</text>
+        <text x="735" y="158" text-anchor="middle" font-size="9" fill="#8b949e">id, title, priority</text>
+        <text x="735" y="172" text-anchor="middle" font-size="9" fill="#8b949e">appliesTo.tasks[]</text>
+        <text x="735" y="186" text-anchor="middle" font-size="9" fill="#8b949e">経営方針 → 判定バッジ</text>
+
+        <!-- workspace.json -->
+        <rect x="640" y="40" width="140" height="55" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+        <text x="710" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#e6edf3">workspace.json</text>
+        <text x="710" y="78" text-anchor="middle" font-size="9" fill="#8b949e">name: "Flutter"</text>
+
+        <!-- arrows -->
+        <!-- bizItems → bizSysLinks -->
+        <line x1="180" y1="100" x2="230" y2="145" stroke="#8b949e" stroke-width="1" marker-end="url(#arr)"/>
+        <!-- systems → bizSysLinks -->
+        <line x1="420" y1="100" x2="370" y2="145" stroke="#8b949e" stroke-width="1" marker-end="url(#arr)"/>
+        <!-- bprTasks → bizId → bizItems (dashed) -->
+        <line x1="100" y1="200" x2="100" y2="120" stroke="#3fb950" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+        <!-- contextNotes → bprTasks -->
+        <line x1="420" y1="248" x2="180" y2="248" stroke="#d29922" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+        <!-- contextNotes → systems -->
+        <line x1="500" y1="200" x2="500" y2="120" stroke="#d29922" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+        <!-- managementPolicies → bprTasks -->
+        <line x1="640" y1="175" x2="185" y2="250" stroke="#f0a020" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-amber)"/>
+
+        <!-- legend -->
+        <line x1="20" y1="310" x2="44" y2="310" stroke="#8b949e" stroke-width="1" marker-end="url(#arr)"/>
+        <text x="48" y="314" font-size="9" fill="#8b949e">直接参照</text>
+        <line x1="120" y1="310" x2="144" y2="310" stroke="#8b949e" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+        <text x="148" y="314" font-size="9" fill="#8b949e">ID参照（n:m含む）</text>
+        <rect x="250" y="304" width="10" height="10" rx="2" fill="none" stroke="#f0a020" stroke-dasharray="3,2"/>
+        <text x="264" y="314" font-size="9" fill="#8b949e">判定バッジ生成に使用</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  SECTION 5: 技術スタック
+════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">Tech Stack</div>
+    <h2>技術スタック</h2>
+
+    <div class="card-grid card-grid-4">
+      <div class="card">
+        <div style="font-size:1.3rem;margin-bottom:6px">⚡</div>
+        <h3>Next.js 16</h3>
+        <p class="text-muted mt-2">App Router / React 19 / TypeScript strict</p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.3rem;margin-bottom:6px">🎨</div>
+        <h3>Tailwind v4</h3>
+        <p class="text-muted mt-2">@theme CSS変数でトークン一元管理</p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.3rem;margin-bottom:6px">🧩</div>
+        <h3>shadcn/ui</h3>
+        <p class="text-muted mt-2">base-nova / @base-ui/react ベース</p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.3rem;margin-bottom:6px">✅</div>
+        <h3>Zod</h3>
+        <p class="text-muted mt-2">実行時型検証 / スキーマ駆動型定義</p>
+      </div>
+    </div>
+
+    <div class="card mt-4" style="margin-top:16px">
+      <h3 style="margin-bottom:10px;font-size:0.9rem;color:var(--muted)">主要ファイル構成</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.8rem">
+        <div><span class="font-mono" style="color:var(--blue)">app/page.tsx</span> <span class="text-muted">— データ読込・Zod検証</span></div>
+        <div><span class="font-mono" style="color:var(--blue)">components/workspace/Workspace.tsx</span> <span class="text-muted">— 4ペイン親</span></div>
+        <div><span class="font-mono" style="color:var(--green)">lib/schema.ts</span> <span class="text-muted">— 全型定義・Zodスキーマ</span></div>
+        <div><span class="font-mono" style="color:var(--green)">lib/computed/judgments.ts</span> <span class="text-muted">— 判定バッジ導出ロジック</span></div>
+        <div><span class="font-mono" style="color:var(--amber)">components/primitives/JudgmentBadge.tsx</span> <span class="text-muted">— バッジ部品</span></div>
+        <div><span class="font-mono" style="color:var(--amber)">data/*.json</span> <span class="text-muted">— シードデータ（6ファイル）</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  SECTION 6: 実装進捗 & タイムライン
+════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">Progress &amp; Timeline</div>
+    <h2>実装進捗とスケジュール</h2>
+
+    <div class="card-grid card-grid-2" style="margin-bottom:32px">
+      <div>
+        <h3 style="margin-bottom:14px;font-size:0.9rem;color:var(--muted)">完了済み <span class="chip chip-done">Done</span></h3>
+        <ul style="list-style:none;font-size:0.85rem;line-height:2.2">
+          <li>✅ workspace-ui-kit（採用管理サンプル）を取得・起動</li>
+          <li>✅ Flutter / 3,000ft BPR へのネーミング確定</li>
+          <li>✅ 道A（踏襲ルート）方針の確定</li>
+          <li>✅ データモデル設計（bizItems / systems / bprTasks / contextNotes / bizSysLinks / managementPolicies）</li>
+          <li>✅ シードデータ（6 JSON）の投入</li>
+          <li>✅ Zodスキーマへの全型定義の反映</li>
+          <li>✅ 判定バッジシステム（JudgmentBadge）の実装と接続</li>
+          <li>✅ ビルド・動作確認</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-bottom:14px;font-size:0.9rem;color:var(--muted)">画面構成の仕上げ <span class="chip chip-wip">6/5 〆切</span></h3>
+        <ul style="list-style:none;font-size:0.85rem;line-height:2.2">
+          <li>🔲 Pane 1 のフラグ表示（🔴重複 / 🟡無駄 / 🔵目的不明）をビジュアル強化</li>
+          <li>🔲 Pane 2 → Pane 4 の連動（システム選択でメモ表示）</li>
+          <li>🔲 Pane 4 の空中視点メモカード実装（法令・統制・慣行・NG）</li>
+          <li>🔲 Pane 3 の主語タグのカラー分類（自分 / 他部門 / 停滞中）</li>
+          <li>🔲 ヘッダーの Flutter ロゴ・3,000ft BPR タグライン</li>
+          <li>🔲 全体カラートークンの調整（採用管理カラー → Flutter カラー）</li>
+        </ul>
+
+        <h3 style="margin:20px 0 14px;font-size:0.9rem;color:var(--muted)">中身の実装 <span class="chip chip-next">7/3 〆切</span></h3>
+        <ul style="list-style:none;font-size:0.85rem;line-height:2.2">
+          <li>🔲 Pane 1 → Pane 2 の n:m 連動（bizSysLinks 経由フィルタリング）</li>
+          <li>🔲 Pane 3 タスクのインライン編集（主語・ステージ・メモ）</li>
+          <li>🔲 Pane 4 空中視点メモのインライン追加・編集</li>
+          <li>🔲 ステージ進行（D&amp;D → ステージ移動）のBPRドメインへの書き換え</li>
+          <li>🔲 contextNotes の動的追加 UI</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom:20px;font-size:0.95rem">タイムライン</h3>
+    <div class="timeline">
+      <div class="timeline-item done">
+        <div class="timeline-date">〜2026/05/22</div>
+        <div class="timeline-title">設計・データモデル・基盤実装 <span class="chip chip-done">完了</span></div>
+        <div class="timeline-body">ネーミング確定、Zodスキーマ整備、シードデータ投入、判定バッジシステム実装</div>
+      </div>
+      <div class="timeline-item wip">
+        <div class="timeline-date">〜2026/06/05</div>
+        <div class="timeline-title">画面構成の仕上げ <span class="chip chip-wip">進行中</span></div>
+        <div class="timeline-body">4ペインの見た目を最終形に。ヘッダー・カラー・ペイン間連動・主語タグの仕上げ</div>
+      </div>
+      <div class="timeline-item next">
+        <div class="timeline-date">〜2026/07/03</div>
+        <div class="timeline-title">中身の実装 <span class="chip chip-next">7/3 〆切</span></div>
+        <div class="timeline-body">インライン編集・n:m連動・空中視点メモの追加UI・ステージ管理のBPR化</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+  FOOTER
+════════════════════════════════════════════ -->
+<footer>
+  <div class="container">
+    <div style="font-size:1.1rem;font-weight:700;color:var(--amber);letter-spacing:.1em;margin-bottom:6px">Flutter</div>
+    <div>3,000ft BPR &nbsp;·&nbsp; workspace-ui-kit &nbsp;·&nbsp; AI-DrivenSchool 月3課題</div>
+    <div style="margin-top:6px;color:#444d56">フラッタは空中から社内を俯瞰し、感情ではなく構造で語る</div>
+  </div>
+</footer>
+
+</body>
+</html>

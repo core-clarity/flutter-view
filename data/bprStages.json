@@ -1,0 +1,212 @@
+[
+  {
+    "id": "stage-2",
+    "name": "ユーザヒアリング（事業管理）",
+    "sortOrder": 0
+  },
+  {
+    "id": "stage-3",
+    "name": "ユーザヒアリング（経理）",
+    "sortOrder": 1
+  },
+  {
+    "id": "stage-4",
+    "name": "影響システム処理調査",
+    "sortOrder": 2
+  },
+  {
+    "id": "stage-5",
+    "name": "影響システム改修",
+    "sortOrder": 3
+  },
+  {
+    "id": "stage-6",
+    "name": "配賦処理停止依頼",
+    "sortOrder": 4
+  },
+  {
+    "id": "stage-7",
+    "name": "配賦処理停止タイミング確定（事業管理）",
+    "sortOrder": 5
+  },
+  {
+    "id": "stage-8",
+    "name": "配賦処理停止説明（事業管理）",
+    "sortOrder": 6
+  },
+  {
+    "id": "stage-9",
+    "name": "配賦処理停止",
+    "sortOrder": 7
+  },
+  {
+    "id": "stage-10",
+    "name": "効果測定",
+    "sortOrder": 8
+  },
+  {
+    "id": "stage-11",
+    "name": "ユーザヒアリング（人事G）",
+    "sortOrder": 9
+  },
+  {
+    "id": "stage-12",
+    "name": "RFP作成",
+    "sortOrder": 10
+  },
+  {
+    "id": "stage-13",
+    "name": "RFP配布",
+    "sortOrder": 11
+  },
+  {
+    "id": "stage-14",
+    "name": "提案コンペ",
+    "sortOrder": 12
+  },
+  {
+    "id": "stage-15",
+    "name": "ベンダ、ソリューション確定",
+    "sortOrder": 13
+  },
+  {
+    "id": "stage-16",
+    "name": "Fit＆Gap（マッピング）",
+    "sortOrder": 14
+  },
+  {
+    "id": "stage-17",
+    "name": "移行データ作成",
+    "sortOrder": 15
+  },
+  {
+    "id": "stage-18",
+    "name": "新人事IF開発　API",
+    "sortOrder": 16
+  },
+  {
+    "id": "stage-19",
+    "name": "新人事IF開発　DB間連携",
+    "sortOrder": 17
+  },
+  {
+    "id": "stage-20",
+    "name": "受入システム側開発",
+    "sortOrder": 18
+  },
+  {
+    "id": "stage-21",
+    "name": "新人事システム切替",
+    "sortOrder": 19
+  },
+  {
+    "id": "stage-22",
+    "name": "ユーザヒアリング（音楽）",
+    "sortOrder": 20
+  },
+  {
+    "id": "stage-23",
+    "name": "ユーザヒアリング（映像）",
+    "sortOrder": 21
+  },
+  {
+    "id": "stage-24",
+    "name": "ユーザヒアリング（ライヴ）",
+    "sortOrder": 22
+  },
+  {
+    "id": "stage-25",
+    "name": "ユーザヒアリング（マネジメント）",
+    "sortOrder": 23
+  },
+  {
+    "id": "stage-26",
+    "name": "ユーザヒアリング（MD）",
+    "sortOrder": 24
+  },
+  {
+    "id": "stage-27",
+    "name": "アーティスト軸統合阻害要因検討",
+    "sortOrder": 25
+  },
+  {
+    "id": "stage-28",
+    "name": "アーティストマスタ運用体制整備",
+    "sortOrder": 26
+  },
+  {
+    "id": "stage-29",
+    "name": "アーティストコード整備対象システム特定",
+    "sortOrder": 27
+  },
+  {
+    "id": "stage-30",
+    "name": "企画書業務分析",
+    "sortOrder": 28
+  },
+  {
+    "id": "stage-31",
+    "name": "発番、納品、Product業務レイヤ分析",
+    "sortOrder": 29
+  },
+  {
+    "id": "stage-32",
+    "name": "実績計上（会計）処理分析",
+    "sortOrder": 30
+  },
+  {
+    "id": "stage-33",
+    "name": "現状仕訳分析",
+    "sortOrder": 31
+  },
+  {
+    "id": "stage-34",
+    "name": "類似サービス情報収集",
+    "sortOrder": 32
+  },
+  {
+    "id": "stage-35",
+    "name": "ウイングアークプレゼン",
+    "sortOrder": 33
+  },
+  {
+    "id": "stage-36",
+    "name": "ステメン数算定、ランニング見積",
+    "sortOrder": 34
+  },
+  {
+    "id": "stage-37",
+    "name": "ＡＡＡプレゼン",
+    "sortOrder": 35
+  },
+  {
+    "id": "stage-38",
+    "name": "発注書・請書の必要性啓蒙準備",
+    "sortOrder": 36
+  },
+  {
+    "id": "stage-39",
+    "name": "情報成果物発注の実態調査（アンケート）",
+    "sortOrder": 37
+  },
+  {
+    "id": "stage-40",
+    "name": "発注書・請書の必要性啓蒙",
+    "sortOrder": 38
+  },
+  {
+    "id": "stage-41",
+    "name": "請書Googleフォーム開発",
+    "sortOrder": 39
+  },
+  {
+    "id": "stage-42",
+    "name": "請書対象発注抽出部開発",
+    "sortOrder": 40
+  },
+  {
+    "id": "stage-1",
+    "name": "未着手",
+    "sortOrder": 99
+  }
+]

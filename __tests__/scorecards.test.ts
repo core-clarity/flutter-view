@@ -15,6 +15,12 @@ describe("deriveStageStatus", () => {
   it("decision があれば done（date の有無は問わない）", () => {
     expect(deriveStageStatus("2026-05-01", "通過")).toBe("done");
     expect(deriveStageStatus("", "不合格")).toBe("done");
+    expect(deriveStageStatus("2026-05-01", "完了")).toBe("done");
+  });
+
+  it("decision が「進行中」なら planned", () => {
+    expect(deriveStageStatus("", "進行中")).toBe("planned");
+    expect(deriveStageStatus("2026-05-01", "進行中")).toBe("planned");
   });
 
   it("空白のみの decision は空扱いで done にならない", () => {

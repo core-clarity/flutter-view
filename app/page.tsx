@@ -1,35 +1,22 @@
 import { Workspace } from "@/components/workspace/Workspace";
-import positionsData from "@/data/positions.json";
-import candidatesData from "@/data/candidates.json";
-import workspaceData from "@/data/workspace.json";
-import {
-  departmentsSchema,
-  candidatesSchema,
-  workspaceSchema,
-} from "@/lib/schema";
+import { DEFAULT_WORKSPACE_ID } from "@/lib/db/constants";
+import { loadWorkspaceBundle } from "@/lib/db/queries";
 
-export default function Page() {
-  const deptResult = departmentsSchema.safeParse(positionsData);
-  const candResult = candidatesSchema.safeParse(candidatesData);
-  const wsResult = workspaceSchema.safeParse(workspaceData);
+export const dynamic = "force-dynamic";
 
-  if (!deptResult.success || !candResult.success || !wsResult.success) {
-    const errors = [
-      !deptResult.success &&
-        `positions.json: ${deptResult.error.issues[0]?.message}`,
-      !candResult.success &&
-        `candidates.json: ${candResult.error.issues[0]?.message}`,
-      !wsResult.success &&
-        `workspace.json: ${wsResult.error.issues[0]?.message}`,
-    ].filter(Boolean);
-    throw new Error(`データの形式が正しくありません:\n${errors.join("\n")}`);
-  }
+export default async function Page() {
+  const data = await loadWorkspaceBundle(DEFAULT_WORKSPACE_ID);
 
   return (
     <Workspace
-      initialDepartments={deptResult.data}
-      initialCandidates={candResult.data}
-      workspace={wsResult.data}
+      initialDepartments={data.departments}
+      initialCandidates={data.candidates}
+      initialBprStages={data.bprStages}
+      workspace={data.workspace}
+      contextNotes={data.contextNotes}
+      managementPolicies={data.managementPolicies}
+      systems={data.systems}
+      bizSysLinks={data.bizSysLinks}
     />
   );
 }

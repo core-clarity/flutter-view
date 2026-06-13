@@ -1,0 +1,132 @@
+[
+  {
+    "id": "dept-1",
+    "name": "事業支援本部",
+    "positions": [
+      {
+        "id": "biz-1",
+        "name": "原価配賦処理停止",
+        "count": 1,
+        "flags": []
+      },
+      {
+        "id": "biz-2",
+        "name": "音楽事業品番管理簡素化",
+        "count": 1,
+        "flags": []
+      },
+      {
+        "id": "biz-3",
+        "name": "Windows'2012Serverリプレイス",
+        "count": 1,
+        "flags": []
+      },
+      {
+        "id": "biz-4",
+        "name": "セコム見直し",
+        "count": 1,
+        "flags": []
+      },
+      {
+        "id": "biz-5",
+        "name": "管理会計軸共通化",
+        "count": 1,
+        "flags": []
+      },
+      {
+        "id": "biz-6",
+        "name": "情報成果物発注改善",
+        "count": 1,
+        "flags": []
+      }
+    ]
+  },
+  {
+    "id": "dept-2",
+    "name": "総務人事本部",
+    "positions": [
+      {
+        "id": "biz-7",
+        "name": "新人事SaaSシステム導入",
+        "count": 1,
+        "flags": []
+      },
+      {
+        "id": "biz-8",
+        "name": "社員検索、タレマネ機能、組織図業務統合",
+        "count": 1,
+        "flags": []
+      },
+      {
+        "id": "biz-9",
+        "name": "営業利益管理構想",
+        "count": 1,
+        "flags": []
+      }
+    ]
+  },
+  {
+    "id": "dept-3",
+    "name": "レーベル事業本部",
+    "positions": [
+      {
+        "id": "biz-10",
+        "name": "SaaS連携",
+        "count": 1,
+        "flags": []
+      },
+      {
+        "id": "biz-11",
+        "name": "BI機能強化",
+        "count": 1,
+        "flags": []
+      },
+      {
+        "id": "biz-12",
+        "name": "Regend譲渡原盤確定、管理方法",
+        "count": 1,
+        "flags": []
+      },
+      {
+        "id": "biz-13",
+        "name": "Regend原盤報告機能",
+        "count": 1,
+        "flags": []
+      }
+    ]
+  },
+  {
+    "id": "dept-4",
+    "name": "ライヴ事業本部",
+    "positions": [
+      {
+        "id": "biz-14",
+        "name": "管理会計軸共通化",
+        "count": 1,
+        "flags": []
+      }
+    ]
+  },
+  {
+    "id": "dept-5",
+    "name": "音楽出版事業本部",
+    "positions": []
+  },
+  {
+    "id": "dept-6",
+    "name": "コーポレート本部",
+    "positions": []
+  },
+  {
+    "id": "dept-7",
+    "name": "アニメ事業本部",
+    "positions": [
+      {
+        "id": "biz-15",
+        "name": "管理会計軸共通化",
+        "count": 1,
+        "flags": []
+      }
+    ]
+  }
+]

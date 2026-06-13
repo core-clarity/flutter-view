@@ -10,7 +10,6 @@
  * 規律:
  *   - components/primitives/ の Inline* primitive を使う（shadcn 標準フォーム）
  *   - AttachmentList を再利用（添付セクション）
- *   - AxisScoreRow を CandidateDashboardPane から import
  *   - ステージ切替時の state リセットは `key` 再マウントで
  *
  * `SelectedDetail` 型は `lib/schema.ts` に集約（Phase 3A）。
@@ -18,17 +17,18 @@
 
 import { useEffect, useState } from "react";
 
+import { Ban, AlertTriangle, Scale, ShieldAlert } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { Pane4Toggle } from "@/components/workspace/Pane4Toggle";
 
 import {
-  type AxisKey,
-  type StageKey,
   type Scorecard,
   type SelectedDetail,
-  AXIS_ORDER,
+  type ContextNote,
+  type Material,
 } from "@/lib/schema";
-import { EVALUATION_AXIS, PANE4_SECTION_IDS } from "@/lib/labels";
+import { PANE4_SECTION_IDS } from "@/lib/labels";
 import { createMinimalScorecard } from "@/lib/data/factories";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -41,8 +41,7 @@ import {
   type ComboOption,
 } from "@/components/primitives";
 import { Pane4Section } from "@/components/workspace/Pane4Section";
-import { AxisScoreRow } from "@/components/workspace/CandidateDashboardPane";
-import { AttachmentList } from "@/components/workspace/AttachmentList";
+import { MaterialList } from "@/components/workspace/MaterialList";
 
 // ===== Pane 4 内部型（ファイル外には出さない） =====
 
@@ -63,28 +62,32 @@ type EditableScorecardKey =
   | "comment"
   | "summary";
 
-// ===== 定数（screening-lab / profile-card-lab から移植） =====
+// ===== 定数（BPR ドメイン） =====
 
 const FORMAT_OPTIONS = [
-  "書類",
-  "オンライン (Google Meet)",
-  "オフライン",
+  "対面",
+  "オンライン（Teams/Meet）",
+  "メール・チャット",
+  "文書作業",
+  "ワークショップ",
 ] as const;
 
-const DECISION_OPTIONS = ["通過", "保留", "不合格"] as const;
+const DECISION_OPTIONS = ["進行中", "完了", "保留", "差し戻し"] as const;
 
 const INITIAL_INTERVIEWER_OPTIONS: ComboOption[] = [
-  { value: "田中 花子", description: "採用担当チーム" },
-  { value: "佐藤 太郎", description: "エンジニアリングマネージャー" },
-  { value: "鈴木 一郎", description: "シニアエンジニア" },
-  { value: "山田 美咲", description: "プロダクトマネージャー" },
+  { value: "情シス（私）", description: "情報システム本部" },
+  { value: "経理部マネージャ", description: "財務本部・経理部" },
+  { value: "営業部マネージャ", description: "営業本部" },
+  { value: "役員（承認待ち）", description: "経営層" },
+  { value: "ベンダー", description: "外部システムベンダー" },
+  { value: "外部コンサル", description: "BPR支援コンサルタント" },
 ];
 
 // ===== 選考ステージ詳細（旧モード 2、ADR-0015 で唯一のモードに） =====
 
 /**
  * モード 2（選考ステージ詳細、書類選考 / 面接 共通テンプレート）。
- * 基本情報 / 評価 / コメント / 要約 / 添付 の 5 ブロック構成（screening-lab と一致）。
+ * 基本情報 / コメント / 要約 / 添付 の 4 ブロック構成。
  *
  * ステージ別ラベル分岐（ADR-0010 §9 G）:
  *   - 「面接官」フィールド: 書類選考のみ「審査担当」、それ以外は「面接官」
@@ -97,21 +100,21 @@ const INITIAL_INTERVIEWER_OPTIONS: ComboOption[] = [
  */
 function Mode2StageDetail({
   scorecard,
-  onUpdateAxis,
   onUpdateScorecardField,
+  onUpdateMaterials,
 }: {
   scorecard: Scorecard;
-  onUpdateAxis: (stage: StageKey, axis: AxisKey, value: number | null) => void;
   onUpdateScorecardField: (
-    stage: StageKey,
+    stepId: string,
     field: EditableScorecardKey,
     value: string,
   ) => void;
+  onUpdateMaterials: (stepId: string, materials: Material[]) => void;
 }) {
-  const isScreening = scorecard.stage === "screening";
-  const interviewerLabel = isScreening ? "審査担当" : "面接官";
-  const summaryHeading = isScreening ? "書類の要約" : "面接の要約";
-  const attachmentHeading = isScreening ? "提出書類" : "添付";
+  const summaryHeading = "記録サマリ";
+  const materialHeading = "資料";
+
+  const interviewerLabel = "担当者";
 
   const [interviewerOptions, setInterviewerOptions] = useState<ComboOption[]>(
     INITIAL_INTERVIEWER_OPTIONS,
@@ -124,13 +127,13 @@ function Mode2StageDetail({
 
   return (
     <div>
-      {/* 基本情報（日時 / 形式 / 面接官 / 判定） */}
+      {/* 基本情報（日時 / 形式 / 担当者 / ステータス） */}
       <Pane4Section id={PANE4_SECTION_IDS.m2.info} title="基本情報">
         <dl className="flex flex-col gap-2.5 text-sm">
           <InlineFieldRow label="日時">
             <InlineDateField
               value={scorecard.date}
-              onSave={(v) => onUpdateScorecardField(scorecard.stage, "date", v)}
+              onSave={(v) => onUpdateScorecardField(scorecard.id, "date", v)}
               ariaLabel="日時"
             />
           </InlineFieldRow>
@@ -140,7 +143,7 @@ function Mode2StageDetail({
               value={scorecard.format}
               options={FORMAT_OPTIONS}
               onSave={(v) =>
-                onUpdateScorecardField(scorecard.stage, "format", v)
+                onUpdateScorecardField(scorecard.id, "format", v)
               }
               ariaLabel="形式"
             />
@@ -151,21 +154,21 @@ function Mode2StageDetail({
               value={scorecard.interviewer}
               options={interviewerOptions}
               onSave={(v) =>
-                onUpdateScorecardField(scorecard.stage, "interviewer", v)
+                onUpdateScorecardField(scorecard.id, "interviewer", v)
               }
               onCreate={handleAddInterviewer}
               ariaLabel={interviewerLabel}
             />
           </InlineFieldRow>
 
-          <InlineFieldRow label="判定">
+          <InlineFieldRow label="ステータス">
             <InlineSelectField
               value={scorecard.decision ?? ""}
               options={DECISION_OPTIONS}
               onSave={(v) =>
-                onUpdateScorecardField(scorecard.stage, "decision", v)
+                onUpdateScorecardField(scorecard.id, "decision", v)
               }
-              ariaLabel="判定"
+              ariaLabel="ステータス"
             />
           </InlineFieldRow>
         </dl>
@@ -173,34 +176,16 @@ function Mode2StageDetail({
 
       <Separator />
 
-      {/* 評価（4 観点 ★、編集可能。★ クリックで値設定 / × でリセット） */}
-      <Pane4Section id={PANE4_SECTION_IDS.m2.evaluation} title="評価">
-        <div className="flex flex-col gap-2 rounded-lg border border-border bg-card px-3 py-3">
-          {AXIS_ORDER.map((key) => (
-            <AxisScoreRow
-              key={key}
-              label={EVALUATION_AXIS[key]}
-              value={scorecard.axisScores[key]}
-              editable
-              onChange={(v) => onUpdateAxis(scorecard.stage, key, v)}
-              onReset={() => onUpdateAxis(scorecard.stage, key, null)}
-            />
-          ))}
-        </div>
-      </Pane4Section>
-
-      <Separator />
-
-      {/* 担当者のコメント（textarea） */}
+      {/* メモ（textarea） */}
       <Pane4Section
         id={PANE4_SECTION_IDS.m2.comment}
-        title="担当者のコメント"
+        title="メモ"
         className="gap-2"
       >
         <InlineTextareaField
           value={scorecard.comment ?? ""}
-          onSave={(v) => onUpdateScorecardField(scorecard.stage, "comment", v)}
-          ariaLabel="担当者のコメント"
+          onSave={(v) => onUpdateScorecardField(scorecard.id, "comment", v)}
+          ariaLabel="メモ"
         />
       </Pane4Section>
 
@@ -214,20 +199,52 @@ function Mode2StageDetail({
       >
         <InlineTextareaField
           value={scorecard.summary ?? ""}
-          onSave={(v) => onUpdateScorecardField(scorecard.stage, "summary", v)}
+          onSave={(v) => onUpdateScorecardField(scorecard.id, "summary", v)}
           ariaLabel={summaryHeading}
         />
       </Pane4Section>
 
       <Separator />
 
-      {/* 添付（書類選考: 提出書類 / 面接: 添付）— `AttachmentList` を再利用 */}
       <Pane4Section
-        id={PANE4_SECTION_IDS.m2.attachments}
-        title={attachmentHeading}
+        id={PANE4_SECTION_IDS.m2.materials}
+        title={materialHeading}
       >
-        <AttachmentList items={scorecard.attachments} />
+        <MaterialList
+          items={scorecard.materials}
+          onChange={(materials) => onUpdateMaterials(scorecard.id, materials)}
+        />
       </Pane4Section>
+    </div>
+  );
+}
+
+// ===== 空中視点メモカード =====
+
+const NOTE_TYPE_CONFIG = {
+  法令リスク:   { Icon: Scale,         border: "border-destructive/40",  bg: "bg-destructive/5",   badge: "bg-destructive/10 text-destructive border-destructive/30" },
+  内部統制:     { Icon: ShieldAlert,    border: "border-amber-500/40",    bg: "bg-amber-500/5",     badge: "bg-amber-500/10 text-amber-600 border-amber-500/30 dark:text-amber-400" },
+  業界慣行:     { Icon: AlertTriangle,  border: "border-yellow-500/40",   bg: "bg-yellow-500/5",    badge: "bg-yellow-400/10 text-yellow-700 border-yellow-400/30 dark:text-yellow-400" },
+  ブラックリスト: { Icon: Ban,           border: "border-border",          bg: "bg-muted/40",        badge: "bg-muted text-muted-foreground border-border" },
+} as const;
+
+function ContextNoteCard({ note }: { note: ContextNote }) {
+  const cfg = NOTE_TYPE_CONFIG[note.noteType];
+  const { Icon } = cfg;
+  return (
+    <div className={cn("rounded-lg border p-3", cfg.border, cfg.bg)}>
+      <div className="mb-1.5 flex items-start gap-2">
+        <span className={cn("inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold leading-none", cfg.badge)}>
+          <Icon className="size-2.5" aria-hidden />
+          {note.noteType}
+        </span>
+      </div>
+      <p className="mb-1 text-xs font-semibold leading-snug text-foreground">
+        {note.title}
+      </p>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        {note.body}
+      </p>
     </div>
   );
 }
@@ -248,24 +265,26 @@ export function CandidateDetailPane({
   selectedDetail,
   scrollAnchor,
   onScrollAnchorConsumed,
-  onUpdateAxis,
   onUpdateScorecardField,
+  onUpdateMaterials,
   pane4Open,
   onTogglePane4,
+  contextNotes,
 }: {
   selectedCandidateId: string;
   scorecards: Scorecard[];
   selectedDetail: SelectedDetail;
   scrollAnchor: string | null;
   onScrollAnchorConsumed: () => void;
-  onUpdateAxis: (stage: StageKey, axis: AxisKey, value: number | null) => void;
   onUpdateScorecardField: (
-    stage: StageKey,
+    stepId: string,
     field: EditableScorecardKey,
     value: string,
   ) => void;
+  onUpdateMaterials: (stepId: string, materials: Material[]) => void;
   pane4Open: boolean;
   onTogglePane4: () => void;
+  contextNotes: ContextNote[];
 }) {
   useEffect(() => {
     if (!scrollAnchor) return;
@@ -283,8 +302,8 @@ export function CandidateDetailPane({
   }, [scrollAnchor, onScrollAnchorConsumed]);
 
   const heading =
-    selectedDetail?.type === "stage"
-      ? (scorecards.find((s) => s.stage === selectedDetail.stage)?.label ??
+    selectedDetail?.type === "step"
+      ? (scorecards.find((s) => s.id === selectedDetail.stepId)?.label ??
         "詳細")
       : "ステージ詳細";
 
@@ -306,17 +325,42 @@ export function CandidateDetailPane({
           </header>
 
           <ScrollArea className="min-h-0 flex-1">
-            {selectedDetail?.type === "stage" && (
+            {selectedDetail?.type === "step" && (
               <Mode2StageDetail
-                key={`${selectedCandidateId}-${selectedDetail.stage}`}
+                key={`${selectedCandidateId}-${selectedDetail.stepId}`}
                 scorecard={
-                  scorecards.find((s) => s.stage === selectedDetail.stage) ??
-                  createMinimalScorecard(selectedDetail.stage)
+                  scorecards.find((s) => s.id === selectedDetail.stepId) ??
+                  createMinimalScorecard(
+                    selectedDetail.stepId,
+                    "新しいステップ",
+                  )
                 }
-                onUpdateAxis={onUpdateAxis}
                 onUpdateScorecardField={onUpdateScorecardField}
+                onUpdateMaterials={onUpdateMaterials}
               />
             )}
+            {/* 空中視点メモ：このタスクに紐づくcontextNotesを表示 */}
+            {(() => {
+              const taskNotes = contextNotes.filter(
+                (n) => n.refType === "task" && n.refId === selectedCandidateId,
+              );
+              if (taskNotes.length === 0) return null;
+              return (
+                <>
+                  <Separator />
+                  <div className="px-4 py-3">
+                    <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      空中視点メモ
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      {taskNotes.map((note) => (
+                        <ContextNoteCard key={note.id} note={note} />
+                      ))}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </ScrollArea>
         </>
       ) : (

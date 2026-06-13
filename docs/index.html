@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Flutter BPR ワークスペース — ドキュメント</title>
+<style>
+  :root {
+    --bg: oklch(0.29 0.007 242);
+    --surface: oklch(0.32 0.009 240);
+    --surface2: oklch(0.35 0.009 240);
+    --border: oklch(0.43 0.011 238);
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --amber: #f0a020;
+    --amber-dim: #f0a02033;
+    --blue: #58a6ff;
+    --blue-dim: #58a6ff22;
+    --slate: #6e7681;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(160deg, oklch(0.27 0.007 242) 0%, oklch(0.33 0.009 240) 50%, oklch(0.27 0.007 242) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 64px 24px 52px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 50% 60% at 50% 0%, #f0a02014 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--amber); }
+  .hero p {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* フラッタ画像ホバー拡大 */
+  .flatta-img-wrap { position: relative; display: inline-flex; cursor: zoom-in; }
+  .flatta-img-wrap .flatta-fullsize {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    max-width: 88vw; max-height: 88vh;
+    width: auto; height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+    border: 3px solid var(--amber);
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 24px 64px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
+  .flatta-img-wrap:hover .flatta-fullsize { display: block; }
+
+  /* ── Cards ── */
+  .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 56px 0 72px;
+  }
+  @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 26px 24px;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    cursor: pointer;
+  }
+  .card:hover {
+    border-color: var(--card-accent);
+    background: var(--surface2);
+    transform: translateY(-2px);
+  }
+  .card-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+  .card-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    align-self: flex-start;
+  }
+  .card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+  .card .card-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 18px;
+    line-height: 1.5;
+    flex: 1;
+  }
+  .card .card-link {
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: auto;
+  }
+  .card .card-link::after {
+    content: "→";
+    transition: transform 0.15s;
+  }
+  .card:hover .card-link::after { transform: translateX(3px); }
+
+  /* カードごとのアクセントカラー */
+  .card-amber { --card-accent: var(--amber); }
+  .card-amber .card-tag  { color: var(--amber); background: var(--amber-dim); border: 1px solid #f0a02044; }
+  .card-amber .card-icon { background: var(--amber-dim); }
+  .card-amber .card-link { color: var(--amber); }
+
+  .card-blue { --card-accent: var(--blue); }
+  .card-blue .card-tag  { color: var(--blue); background: var(--blue-dim); border: 1px solid #58a6ff44; }
+  .card-blue .card-icon { background: var(--blue-dim); }
+  .card-blue .card-link { color: var(--blue); }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: auto;
+    padding: 24px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--slate);
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-eyebrow">Flutter BPR Workspace</div>
+  <h1>
+    <span class="flatta-img-wrap">
+      <img src="img/フラッタ.jpg" alt="フラッタ"
+           style="height:48px;width:48px;border-radius:50%;object-fit:cover;border:2px solid var(--amber);opacity:0.88;vertical-align:middle;margin-right:12px;">
+      <img src="img/フラッタ.jpg" alt="フラッタ 原寸大" class="flatta-fullsize">
+    </span><span>Flutter</span>
+  </h1>
+  <p style="margin-top:10px;">メタ認知〜主語が切り替わる世界〜 &nbsp;|&nbsp; ドキュメント一覧</p>
+</header>
+
+<main class="container">
+  <div class="cards">
+
+    <a class="card card-amber" href="flatta-overview.html">
+      <div class="card-icon">🦋</div>
+      <div class="card-tag">Concept</div>
+      <h2>思想を画面にする</h2>
+      <p class="card-sub">BPR ワークスペースの設計思想・4ペイン構成・ドメインマッピングの全体像。</p>
+      <span class="card-link">flatta-overview.html</span>
+    </a>
+
+    <a class="card card-blue" href="data-storage-design.html">
+      <div class="card-icon">🗄️</div>
+      <div class="card-tag">Data Storage Design</div>
+      <h2>データ設計</h2>
+      <p class="card-sub">何を・どこに保存するか。JSON とNeon DB の分類根拠・テーブル関連図・設計メモ。</p>
+      <span class="card-link">data-storage-design.html</span>
+    </a>
+
+  </div>
+</main>
+
+<footer>
+  Flutter BPR ワークスペース — ドキュメント
+</footer>
+
+</body>
+</html>

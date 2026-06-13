@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
 
 import { type Department } from "@/lib/schema";
+import { PANE1_LABEL } from "@/lib/labels";
 import { DeleteConfirmDialog } from "@/components/workspace/DeleteConfirmDialog";
 import {
   DropdownMenu,
@@ -60,9 +61,16 @@ export function PositionPane({
       >
         <SidebarHeader className="border-b border-sidebar-border p-0">
           <div className="flex h-12 items-center justify-between gap-2 px-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[state=expanded]:px-5">
-            <h2 className="truncate text-sm font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-              {workspaceName}
-            </h2>
+            {/* ロゴ：折りたたみ時は非表示 */}
+            <div className="flex min-w-0 flex-col gap-0.5 group-data-[collapsible=icon]:hidden">
+              <span className="text-sm font-semibold leading-tight text-sidebar-foreground">
+                Flutter View
+              </span>
+              <div className="h-px bg-sidebar-border" />
+              <span className="text-[10px] leading-tight text-sidebar-foreground/50">
+                3,000ft BPR
+              </span>
+            </div>
             <Pane1Toggle />
           </div>
         </SidebarHeader>
@@ -74,12 +82,12 @@ export function PositionPane({
                 {dept.name}
               </SidebarGroupLabel>
               <SidebarGroupAction
-                title={`${dept.name} にポジションを追加`}
+                title={`${dept.name} に業務を追加`}
                 onClick={() => setAddDialogDeptId(dept.id)}
                 className="w-6 rounded-[min(var(--radius-md),10px)] text-muted-foreground hover:bg-muted hover:text-foreground [&>svg]:size-3"
               >
                 <Plus />
-                <span className="sr-only">{dept.name} にポジションを追加</span>
+                <span className="sr-only">{dept.name} に業務を追加</span>
               </SidebarGroupAction>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -140,11 +148,11 @@ export function PositionPane({
           onOpenChange={(open) => {
             if (!open) setAddDialogDeptId(null);
           }}
-          title="ポジションを追加"
-          description={`${addDialogDept.name} に新しいポジションを追加します`}
-          fieldLabel="ポジション名"
-          fieldId="pos-name"
-          placeholder="例: データエンジニア"
+          title={PANE1_LABEL.addItemTitle}
+          description={PANE1_LABEL.addItemDescription(addDialogDept.name)}
+          fieldLabel={PANE1_LABEL.addItemFieldLabel}
+          fieldId="biz-item-name"
+          placeholder={PANE1_LABEL.addItemPlaceholder}
           onAdd={(name) => onAddPosition(addDialogDept.id, name)}
         />
       )}
@@ -154,7 +162,7 @@ export function PositionPane({
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-        title="ポジションを削除しますか？"
+        title={PANE1_LABEL.deleteItemTitle}
         itemName={deleteTarget?.posName ?? ""}
         onConfirm={() => {
           if (deleteTarget) {
