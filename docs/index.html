@@ -16,6 +16,10 @@
     --amber-dim: #f0a02033;
     --blue: #58a6ff;
     --blue-dim: #58a6ff22;
+    --neon: #7fff5f;
+    --neon-dim: #7fff5f22;
+    --pink: #f472b6;
+    --pink-dim: #f472b622;
     --slate: #6e7681;
     --radius: 12px;
   }
@@ -93,6 +97,18 @@
     padding: 56px 0 72px;
   }
   @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+
+  /* neonグリーン */
+  .card-neon { --card-accent: var(--neon); }
+  .card-neon .card-tag  { color: var(--neon); background: var(--neon-dim); border: 1px solid #7fff5f44; }
+  .card-neon .card-icon { background: var(--neon-dim); }
+  .card-neon .card-link { color: var(--neon); }
+
+  /* ピンク */
+  .card-pink { --card-accent: var(--pink); }
+  .card-pink .card-tag  { color: var(--pink); background: var(--pink-dim); border: 1px solid #f472b644; }
+  .card-pink .card-icon { background: var(--pink-dim); }
+  .card-pink .card-link { color: var(--pink); }
 
   .card {
     display: flex;
@@ -207,6 +223,25 @@
       <h2>データ設計</h2>
       <p class="card-sub">何を・どこに保存するか。JSON とNeon DB の分類根拠・テーブル関連図・設計メモ。</p>
       <span class="card-link">data-storage-design.html</span>
+    </a>
+
+    <a class="card card-neon" href="data-storage-design_rev.html">
+      <div class="card-icon">🛢️</div>
+      <div class="card-tag">Data Storage Design 2</div>
+      <h2>データ実装/月次課題</h2>
+      <p class="card-sub">何を・どこに保存するか。アプリケーションの公開。</p>
+      <span class="card-link">data-storage-design_rev.html</span>
+    </a>
+
+    <a class="card card-pink" href="https://flutter-view.vercel.app/" target="_blank" rel="noopener">
+      <div class="card-icon">
+        <img src="img/flatt3.png" alt="Application"
+             style="width:28px;height:28px;border-radius:4px;">
+      </div>
+      <div class="card-tag">Application</div>
+      <h2>Flutter BPR App</h2>
+      <p class="card-sub">Vercel にデプロイされたアプリケーション本体。</p>
+      <span class="card-link">flutter-view.vercel.app</span>
     </a>
 
   </div>

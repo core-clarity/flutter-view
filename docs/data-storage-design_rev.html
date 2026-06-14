@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>データ保存設計メモ | Flutter BPR ワークスペース</title>
+<title>データ保存設計課題提出|Flutter BPRワークスペース</title>
 <style>
   :root {
     --bg: oklch(0.29 0.007 242);
@@ -60,12 +60,13 @@
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--blue);
-    background: var(--blue-dim);
-    border: 1px solid #58a6ff44;
+    color: #39ff6a;
+    background: #39ff6a18;
+    border: 1px solid #39ff6a44;
     border-radius: 20px;
     padding: 3px 12px;
     margin-bottom: 16px;
+    text-shadow: 0 0 8px #39ff6a66;
   }
   .hero h1 { font-size: 28px; font-weight: 700; line-height: 1.3; margin-bottom: 10px; }
   .hero p { color: var(--muted); font-size: 14px; }
@@ -294,11 +295,47 @@
     width: auto; height: auto;
     object-fit: contain;
     border-radius: 12px;
-    border: 3px solid var(--blue);
+    border: 3px solid #39ff6a;
     box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 24px 64px rgba(0,0,0,0.8);
     pointer-events: none;
   }
   .flatta-img-wrap:hover .flatta-fullsize { display: block; }
+
+  /* ── 画像クリック拡大（原寸大モーダル） ── */
+  .hover-zoom-wrap {
+    display: inline-block;
+    position: relative;
+    cursor: zoom-in;
+  }
+  .hover-zoom-wrap > img {
+    display: block;
+    border-radius: 8px;
+    transition: opacity 0.15s;
+  }
+  .hover-zoom-wrap:hover > img { opacity: 0.82; }
+
+  /* モーダルオーバーレイ：JSで .is-open を付け外しする */
+  .zoom-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: rgba(0,0,0,0.82);
+    cursor: zoom-out;
+    align-items: center;
+    justify-content: center;
+  }
+  .zoom-modal.is-open { display: flex; }
+  .zoom-modal img {
+    max-width: 96vw;
+    max-height: 96vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.9);
+    pointer-events: none;
+  }
 
   /* ── Footer ── */
   .footer { padding: 32px 0; text-align: center; color: var(--slate); font-size: 12px; }
@@ -310,61 +347,27 @@
   <div class="container">
     <div class="hero-tag">Data Storage Design</div>
     <h1 style="display:flex;align-items:center;justify-content:center;gap:14px;">
-      <span>何を・どこに保存するか</span>
+      <span>何を・どこに保存するか 月次課題</span>
       <span class="flatta-img-wrap">
         <img src="img/フラッタ.jpg" alt="フラッタ"
-             style="height:52px;width:52px;border-radius:50%;object-fit:cover;border:2px solid var(--blue);opacity:0.88;vertical-align:middle;flex-shrink:0">
+             style="height:52px;width:52px;border-radius:50%;object-fit:cover;border:2px solid #39ff6a;box-shadow:0 0 8px #39ff6a66;opacity:0.88;vertical-align:middle;flex-shrink:0">
         <img src="img/フラッタ.jpg" alt="フラッタ 原寸大" class="flatta-fullsize">
       </span>
     </h1>
-    <p>Flutter BPR ワークスペース — グループセッション向け設計メモ &nbsp;|&nbsp; 2026-06-06</p>
+    <p>Flutter BPR ワークスペース — 月次課題提出 &nbsp;|&nbsp; 2026-07-03(Fri)</p>
   </div>
 </header>
 
 <main class="container">
 
-  <!-- 主要判断サマリ -->
+  <!-- 画面キャプチャ -->
   <section class="section">
-    <div class="section-title">主要な判断（5問）</div>
+    <div class="section-title">Flutter画面</div>
 
-    <div class="decision-grid">
+<div class="hover-zoom-wrap" data-zoom="img/flutter_Shot2.png">
+  <img src="img/flutter_Shot2.png" style="max-width:100%;">
+</div>
 
-      <div class="decision-card">
-        <div class="card-label tag-blue badge" style="margin-bottom:8px;">Q1</div>
-        <div class="card-q">単独利用 vs チーム共有？</div>
-        <div class="card-a">✅ チームで共有しながら使う</div>
-        <div class="card-reason">BPR は情シス・各部門マネージャ・役員など複数の主語が登場するため、全員がリアルタイムで同じ進捗を参照できることが必要。JSON+Git では Push しないと他の人に見えない。</div>
-      </div>
-
-      <div class="decision-card">
-        <div class="card-label tag-blue badge" style="margin-bottom:8px;">Q2</div>
-        <div class="card-q">頻繁に変わるデータはどれか？</div>
-        <div class="card-a">✅ bprTasks・contextNotes・bizItems</div>
-        <div class="card-reason">BPRタスクは毎週ステージが進み、メモは随時追記され、要チェック業務は担当者が増減する。逆に systems・managementPolicies・workspace は設定値に近く変化が少ない。</div>
-      </div>
-
-      <div class="decision-card">
-        <div class="card-label tag-blue badge" style="margin-bottom:8px;">Q3</div>
-        <div class="card-q">systems（業務システム台帳）はどこに？</div>
-        <div class="card-a">✅ DB に入れる（整合性優先）</div>
-        <div class="card-reason">当初「変化が少ないので JSON でよい」と考えたが、biz_sys_links や policy_system_links が sys_id を参照するため、外部キー制約が張れない問題が発覚。整合性を優先して DB に移動。</div>
-      </div>
-
-      <div class="decision-card">
-        <div class="card-label tag-blue badge" style="margin-bottom:8px;">Q4</div>
-        <div class="card-q">scorecards（ステージ記録）はどう持つか？</div>
-        <div class="card-a">✅ 別テーブル（attachments は JSONB）</div>
-        <div class="card-reason">「特定ステージの記録だけ取得」「日付でソート」などの将来クエリに備えて別テーブルが有利。ただし添付ファイルはまだ実体がないのでメタ情報を JSONB に埋め込む。</div>
-      </div>
-
-      <div class="decision-card">
-        <div class="card-label tag-blue badge" style="margin-bottom:8px;">Q5</div>
-        <div class="card-q">managementPolicies の appliesTo 配列は？</div>
-        <div class="card-a">✅ 中間テーブルに分離</div>
-        <div class="card-reason">JSONB 配列だと「この経営方針に紐づくタスク一覧」を取得するたびアプリ側でパースが必要。中間テーブルなら INSERT/DELETE で単純に管理でき、JOIN クエリも書きやすい。</div>
-      </div>
-
-    </div>
   </section>
 
   <!-- アーキテクチャ図 -->
@@ -432,366 +435,272 @@
         <text x="682" y="76" text-anchor="middle"
               fill="#3fb950" font-size="9" font-weight="700" letter-spacing="2" font-family="monospace,system-ui">NEON DB</text>
         <text x="682" y="120" text-anchor="middle"
-              fill="#e6edf3" font-size="15" font-weight="700">10 テーブル</text>
+              fill="#e6edf3" font-size="15" font-weight="700">13 テーブル</text>
         <text x="682" y="142" text-anchor="middle"
               fill="#8b949e" font-size="11">PostgreSQL (Neon)</text>
         <text x="682" y="161" text-anchor="middle"
               fill="#8b949e" font-size="11">Drizzle ORM</text>
       </svg>
     </div>
-    <p class="diagram-caption">JSON はリポジトリから直接読み込み、動的データは Neon DB に問い合わせる</p>
+    <p class="diagram-caption">JSONはリポジトリから直接読み込み、動的データはNeon DBに問い合わせる</p>
   </section>
 
-  <!-- 保存先の分類 -->
-  <section class="section">
-    <div class="section-title">保存先の分類</div>
-
-    <div style="display:flex;align-items:flex-start;gap:10px;background:var(--blue-dim);border:1px solid #58a6ff44;border-left:3px solid var(--blue);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;font-size:13px;line-height:1.7;">
-      <span style="color:var(--blue);font-size:16px;flex-shrink:0;margin-top:1px;">💡</span>
-      <span>
-        <strong style="color:var(--blue);">設計方針の総括：</strong>
-        ワークスペースのコンセプト設定（名前・アイコン）のみリポジトリで管理し、
-        1:N・N:M などテーブル間の結合を持つデータ構造はすべて DB 化する。
-        今回のアプリケーションでは <strong>workspace.json を除くほぼすべてのデータがテーブル管理に適切</strong> と判断した。
-      </span>
-    </div>
-
-    <div class="storage-split">
-
-      <div class="storage-box">
-        <div class="storage-box-header">
-          <div class="dot" style="background:#6e7681;"></div>
-          JSON のまま（リポジトリ）
-        </div>
-        <ul>
-          <li>
-            <span class="file-name">workspace.json</span>
-            <span class="file-desc">ワークスペース名とアイコンの2フィールドのみ。業種変更用の設定値として機能する。</span>
-          </li>
-        </ul>
-      </div>
-
-      <div class="storage-box">
-        <div class="storage-box-header">
-          <div class="dot" style="background:#3fb950;"></div>
-          Neon DB（動的データ）
-        </div>
-        <ul>
-          <li>
-            <span class="file-name">departments</span>
-            <span class="file-desc">本部グループ（bizItems.json の上位層）</span>
-          </li>
-          <li>
-            <span class="file-name">biz_items</span>
-            <span class="file-desc">要チェック業務。flags は JSONB</span>
-          </li>
-          <li>
-            <span class="file-name">bpr_tasks</span>
-            <span class="file-desc">BPRタスク本体。profile をフラット展開・リネーム</span>
-          </li>
-          <li>
-            <span class="file-name">scorecards</span>
-            <span class="file-desc">ステージ記録。attachments は JSONB で埋め込み</span>
-          </li>
-          <li>
-            <span class="file-name">systems</span>
-            <span class="file-desc">業務システム台帳（外部キー整合性のため JSON から移動）</span>
-          </li>
-          <li>
-            <span class="file-name">biz_sys_links</span>
-            <span class="file-desc">要チェック業務 ↔ システムの n:m</span>
-          </li>
-          <li>
-            <span class="file-name">context_notes</span>
-            <span class="file-desc">空中視点メモ（法令リスク・内部統制・慣行・NG事例）</span>
-          </li>
-          <li>
-            <span class="file-name">management_policies</span>
-            <span class="file-desc">経営方針本体</span>
-          </li>
-          <li>
-            <span class="file-name">policy_task_links</span>
-            <span class="file-desc">経営方針 ↔ タスク（中間テーブル）</span>
-          </li>
-          <li>
-            <span class="file-name">policy_system_links</span>
-            <span class="file-desc">経営方針 ↔ システム（中間テーブル）</span>
-          </li>
-        </ul>
-      </div>
-
-    </div>
-  </section>
 
   <!-- テーブル関連図 -->
   <section class="section">
-    <div class="section-title">テーブル関連図（DB）</div>
-    <div class="diagram-wrap">
-      <svg viewBox="0 0 800 515" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DBテーブル関連図">
-        <defs>
-          <marker id="rel-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-            <path d="M 0 1 L 9 5 L 0 9 Z" fill="#454e5c"/>
-          </marker>
-          <marker id="rel-arr-pur" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-            <path d="M 0 1 L 9 5 L 0 9 Z" fill="#bc8cff"/>
-          </marker>
-        </defs>
+    <div class="section-title">テーブル関連図</div>
 
-        <!-- ════ メインテーブル（青枠）════ -->
+<div class="hover-zoom-wrap" data-zoom="img/dbdiagram.io_1.png">
+  <img src="img/dbdiagram.io_1.png" style="max-width:100%;">
+</div>
 
-        <!-- departments -->
-        <rect x="20" y="30" width="160" height="40" rx="6"
-              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
-        <text x="100" y="47" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">departments</text>
-        <text x="100" y="61" text-anchor="middle" fill="#8b949e" font-size="10">本部グループ</text>
+  </section>
 
-        <!-- biz_items -->
-        <rect x="20" y="155" width="160" height="40" rx="6"
-              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
-        <text x="100" y="172" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">biz_items</text>
-        <text x="100" y="186" text-anchor="middle" fill="#8b949e" font-size="10">要チェック業務</text>
-
-        <!-- bpr_tasks -->
-        <rect x="20" y="300" width="160" height="40" rx="6"
-              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
-        <text x="100" y="317" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">bpr_tasks</text>
-        <text x="100" y="331" text-anchor="middle" fill="#8b949e" font-size="10">BPRタスク</text>
-
-        <!-- scorecards -->
-        <rect x="20" y="415" width="160" height="40" rx="6"
-              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
-        <text x="100" y="432" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">scorecards</text>
-        <text x="100" y="446" text-anchor="middle" fill="#8b949e" font-size="10">ステージ記録</text>
-
-        <!-- systems -->
-        <rect x="617" y="155" width="163" height="40" rx="6"
-              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
-        <text x="698" y="172" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">systems</text>
-        <text x="698" y="186" text-anchor="middle" fill="#8b949e" font-size="10">業務システム</text>
-
-        <!-- management_policies -->
-        <rect x="608" y="300" width="182" height="40" rx="6"
-              fill="#1a2535" stroke="#58a6ff" stroke-width="1.5"/>
-        <text x="699" y="315" text-anchor="middle" fill="#e6edf3" font-size="11" font-weight="600" font-family="monospace">management_policies</text>
-        <text x="699" y="331" text-anchor="middle" fill="#8b949e" font-size="10">経営方針</text>
-
-        <!-- ════ 中間テーブル（破線枠）════ -->
-
-        <!-- biz_sys_links -->
-        <rect x="325" y="158" width="148" height="34" rx="4"
-              fill="#161e2c" stroke="#454e5c" stroke-width="1.5" stroke-dasharray="4,2"/>
-        <text x="399" y="173" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="600" font-family="monospace">biz_sys_links</text>
-        <text x="399" y="185" text-anchor="middle" fill="#454e5c" font-size="9">join table</text>
-
-        <!-- policy_task_links -->
-        <rect x="325" y="303" width="148" height="34" rx="4"
-              fill="#161e2c" stroke="#454e5c" stroke-width="1.5" stroke-dasharray="4,2"/>
-        <text x="399" y="318" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="600" font-family="monospace">policy_task_links</text>
-        <text x="399" y="330" text-anchor="middle" fill="#454e5c" font-size="9">join table</text>
-
-        <!-- ════ context_notes（紫枠）════ -->
-        <rect x="290" y="448" width="190" height="40" rx="6"
-              fill="#1a2535" stroke="#bc8cff" stroke-width="1.5"/>
-        <text x="385" y="465" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="monospace">context_notes</text>
-        <text x="385" y="479" text-anchor="middle" fill="#8b949e" font-size="10">空中視点メモ</text>
-
-        <!-- ════ 接続線 ════ -->
-
-        <!-- 1:N departments → biz_items -->
-        <line x1="100" y1="70" x2="100" y2="155"
-              stroke="#454e5c" stroke-width="1.5" marker-end="url(#rel-arr)"/>
-        <text x="110" y="85" fill="#8b949e" font-size="11" font-weight="700">1</text>
-        <text x="110" y="145" fill="#8b949e" font-size="11" font-weight="700">N</text>
-
-        <!-- 1:N biz_items → bpr_tasks -->
-        <line x1="100" y1="195" x2="100" y2="300"
-              stroke="#454e5c" stroke-width="1.5" marker-end="url(#rel-arr)"/>
-        <text x="110" y="210" fill="#8b949e" font-size="11" font-weight="700">1</text>
-        <text x="110" y="289" fill="#8b949e" font-size="11" font-weight="700">N</text>
-
-        <!-- 1:N bpr_tasks → scorecards -->
-        <line x1="100" y1="340" x2="100" y2="415"
-              stroke="#454e5c" stroke-width="1.5" marker-end="url(#rel-arr)"/>
-        <text x="110" y="354" fill="#8b949e" font-size="11" font-weight="700">1</text>
-        <text x="110" y="405" fill="#8b949e" font-size="11" font-weight="700">N</text>
-
-        <!-- N — biz_sys_links — M -->
-        <line x1="180" y1="175" x2="325" y2="175" stroke="#454e5c" stroke-width="1.5"/>
-        <text x="196" y="168" fill="#8b949e" font-size="11" font-weight="700">N</text>
-        <line x1="473" y1="175" x2="617" y2="175" stroke="#454e5c" stroke-width="1.5"/>
-        <text x="602" y="168" fill="#8b949e" font-size="11" font-weight="700">M</text>
-
-        <!-- N — policy_task_links — M -->
-        <line x1="180" y1="320" x2="325" y2="320" stroke="#454e5c" stroke-width="1.5"/>
-        <text x="196" y="313" fill="#8b949e" font-size="11" font-weight="700">N</text>
-        <line x1="473" y1="320" x2="608" y2="320" stroke="#454e5c" stroke-width="1.5"/>
-        <text x="594" y="313" fill="#8b949e" font-size="11" font-weight="700">M</text>
-
-        <!-- policy_system_links: systems ↔ management_policies（縦線 + ラベルボックス） -->
-        <line x1="698" y1="195" x2="699" y2="300"
-              stroke="#454e5c" stroke-width="1.5" marker-end="url(#rel-arr)"/>
-        <rect x="618" y="236" width="162" height="22" rx="4"
-              fill="#161e2c" stroke="#454e5c" stroke-width="1" stroke-dasharray="3,2"/>
-        <text x="699" y="251" text-anchor="middle" fill="#6e7681" font-size="10" font-weight="600" font-family="monospace">policy_system_links</text>
-        <text x="708" y="211" fill="#8b949e" font-size="11" font-weight="700">N</text>
-        <text x="708" y="289" fill="#8b949e" font-size="11" font-weight="700">M</text>
-
-        <!-- context_notes → bpr_tasks（破線・紫・ポリモーフィック） -->
-        <path d="M 290,463 Q 185,438 180,325"
-              fill="none" stroke="#bc8cff" stroke-width="1.5"
-              stroke-dasharray="5,3" marker-end="url(#rel-arr-pur)"/>
-        <text x="216" y="412" fill="#bc8cff" font-size="9" opacity="0.9">refType='task'</text>
-
-        <!-- context_notes → systems（破線・紫・右回り） -->
-        <path d="M 385,488 L 385,503 L 793,503 L 793,175 L 780,175"
-              fill="none" stroke="#bc8cff" stroke-width="1.5"
-              stroke-dasharray="5,3" marker-end="url(#rel-arr-pur)"/>
-        <text x="585" y="497" fill="#bc8cff" font-size="9" opacity="0.9">refType='system'</text>
-      </svg>
+    <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:var(--radius);padding:14px 18px;font-size:13px;">
+        <div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:6px;">残検討1 ─ task_steps カラムの項目加除</div>
+        <div style="margin-bottom:8px;color:var(--muted);font-size:12px;">以下のカラムについてリネーム・削除を検討中（現テーブル定義との差分）</div>
+        <div style="overflow-x:auto;">
+          <table style="font-size:12px;width:auto;min-width:480px;">
+            <thead>
+              <tr>
+                <th style="white-space:nowrap;">現状</th>
+                <th style="white-space:nowrap;">整理後</th>
+                <th style="white-space:nowrap;">備考</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="mono">id</td><td class="mono">id</td><td>そのまま</td></tr>
+              <tr><td class="mono">task_id</td><td class="mono">task_id</td><td>そのまま</td></tr>
+              <tr><td class="mono">sort_order</td><td class="mono">sort_order</td><td>そのまま</td></tr>
+              <tr><td class="mono">name</td><td class="mono">name</td><td>ステップ名</td></tr>
+              <tr><td class="mono">status</td><td class="mono">status</td><td>step_status enum</td></tr>
+              <tr><td class="mono">date</td><td class="mono" style="color:var(--amber);">due_date</td><td>リネーム推奨</td></tr>
+              <tr><td class="mono">interviewer</td><td class="mono" style="color:var(--amber);">assignee</td><td>リネーム</td></tr>
+              <tr><td class="mono">comment</td><td class="mono" style="color:var(--amber);">memo</td><td>リネームでも可、そのままでも</td></tr>
+              <tr><td class="mono">summary</td><td style="color:var(--red);">✕ 削除</td><td>memoと重複なので削除</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:var(--radius);padding:14px 18px;font-size:13px;">
+        <div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:6px;">残検討2 ─ Google ドライブ URL の保存方式</div>
+        <div style="margin-bottom:10px;color:var(--muted);font-size:12px;"><span class="mono" style="background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--blue);">drive_links jsonb</span> カラムを追加し、Google ドライブ URL を配列で持つ形を検討中。</div>
+        <pre style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:11px;line-height:1.7;overflow-x:auto;color:var(--text);"><span style="color:var(--muted);">// schema.ts イメージ</span>
+<span style="color:var(--purple);">export const</span> taskSteps = pgTable(<span style="color:var(--green);">'task_steps'</span>, {
+  id: text(<span style="color:var(--green);">'id'</span>).primaryKey(),
+  taskId: text(<span style="color:var(--green);">'task_id'</span>).references(() => bprTasks.id),
+  sortOrder: integer(<span style="color:var(--green);">'sort_order'</span>),
+  name: text(<span style="color:var(--green);">'name'</span>),
+  status: stepStatusEnum(<span style="color:var(--green);">'status'</span>),
+  dueDate: text(<span style="color:var(--green);">'due_date'</span>),
+  assignee: text(<span style="color:var(--green);">'assignee'</span>),
+  memo: text(<span style="color:var(--green);">'memo'</span>),
+  driveLinks: jsonb(<span style="color:var(--green);">'drive_links'</span>), <span style="color:var(--muted);">// ["https://drive.google.com/..."]</span>
+  createdAt: timestamp(<span style="color:var(--green);">'created_at'</span>),
+  updatedAt: timestamp(<span style="color:var(--green);">'updated_at'</span>),
+})</pre>
+      </div>
     </div>
-    <p class="diagram-caption">実線 = 外部キー（FK）　破線ボックス = 中間テーブル　紫破線 = ポリモーフィック参照（refType で切り替え）</p>
   </section>
 
   <!-- テーブル設計詳細 -->
   <section class="section">
-    <div class="section-title">テーブル設計の要点</div>
+    <div class="section-title">テーブル設計詳細</div>
+
+    <!-- Enum 定義 -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:0.05em;margin-bottom:10px;">ENUM 定義</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+          <div class="mono" style="color:var(--purple);font-size:11px;margin-bottom:6px;">step_status</div>
+          <div class="mono" style="font-size:11px;color:var(--muted);">pending &nbsp;/&nbsp; planned &nbsp;/&nbsp; done</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+          <div class="mono" style="color:var(--purple);font-size:11px;margin-bottom:6px;">context_note_ref_type</div>
+          <div class="mono" style="font-size:11px;color:var(--muted);">task &nbsp;/&nbsp; system</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+          <div class="mono" style="color:var(--purple);font-size:11px;margin-bottom:6px;">context_note_type</div>
+          <div style="font-size:11px;color:var(--muted);">法令リスク &nbsp;/&nbsp; 内部統制<br>業界慣行 &nbsp;/&nbsp; ブラックリスト</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+          <div class="mono" style="color:var(--purple);font-size:11px;margin-bottom:6px;">policy_priority</div>
+          <div class="mono" style="font-size:11px;color:var(--muted);">critical &nbsp;/&nbsp; high</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- テーブル一覧 -->
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
             <th>テーブル</th>
-            <th>主なフィールド / 設計ポイント</th>
-            <th>元 JSON ファイル</th>
+            <th>主なカラム</th>
+            <th>備考</th>
           </tr>
         </thead>
         <tbody>
           <tr>
+            <td><span class="mono">workspaces</span></td>
+            <td class="mono" style="font-size:11px;">id, name, icon, created_at, updated_at</td>
+            <td></td>
+          </tr>
+          <tr>
             <td><span class="mono">departments</span></td>
-            <td>id, name</td>
-            <td><span class="mono">bizItems.json</span></td>
+            <td class="mono" style="font-size:11px;">id, name, sort_order, created_at, updated_at</td>
+            <td></td>
           </tr>
           <tr>
             <td><span class="mono">biz_items</span></td>
-            <td>id, dept_id (FK), name, count<div class="note">flags: <span class="mono">JSONB</span>（"重複の可能性" / "無駄では？" / "目的不明"）</div></td>
-            <td><span class="mono">bizItems.json</span></td>
-          </tr>
-          <tr>
-            <td><span class="mono">bpr_tasks</span></td>
-            <td>
-              id, biz_id (FK), stage, archived, owner<br>
-              <div class="note">profile フラット展開・リネーム:<br>
-              name → <span class="mono">task_name</span> &nbsp;|&nbsp;
-              address → <span class="mono">dept_name</span><br>
-              motivationFull → <span class="mono">background</span> &nbsp;|&nbsp;
-              careerText → <span class="mono">hearing_log</span><br>
-              availableStartDate → <span class="mono">target_date</span><br>
-              ※ birthday / phone / email / desiredSalary 系は削除</div>
-            </td>
-            <td><span class="mono">bprTasks.json</span></td>
-          </tr>
-          <tr>
-            <td><span class="mono">scorecards</span></td>
-            <td>id, task_id (FK), stage, label, date, format, interviewer, decision, comment, summary<div class="note">axis_scores: 4列フラット or JSONB（未決）<br>attachments: <span class="mono">JSONB</span>（実ファイルは将来対応）</div></td>
-            <td><span class="mono">bprTasks.json</span><br>（埋め込み配列）</td>
+            <td class="mono" style="font-size:11px;">id, dept_id, name, task_count, flags <span style="color:var(--amber);">jsonb</span>, sort_order, …</td>
+            <td><div class="note">dept_id → departments FK</div></td>
           </tr>
           <tr>
             <td><span class="mono">systems</span></td>
-            <td>id, name, arch_type, main_db, vendor, contract_status</td>
-            <td><span class="mono">systems.json</span></td>
+            <td class="mono" style="font-size:11px;">id, system_number, name, arch_type, main_db, vendor, contract_status, dept_id, sort_order, …</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><span class="mono">bpr_stages</span></td>
+            <td class="mono" style="font-size:11px;">id, name, sort_order, created_at, updated_at</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><span class="mono">bpr_tasks</span></td>
+            <td class="mono" style="font-size:11px;">id, biz_id, task_name, background, hearing_log, target_date, dept_name, owner, archived, stage_id, current_step_id, sort_order, …</td>
+            <td><div class="note">stage_id → bpr_stages FK<br>current_step_id → task_steps FK</div></td>
+          </tr>
+          <tr>
+            <td><span class="mono">task_steps</span></td>
+            <td class="mono" style="font-size:11px;">id, task_id, sort_order, name, status <span style="color:var(--purple);">step_status</span>, date, format, interviewer, decision, comment, summary, axis_scores <span style="color:var(--amber);">jsonb</span>, materials <span style="color:var(--amber);">jsonb</span>, …</td>
+            <td><div class="note">task_id → bpr_tasks FK</div></td>
+          </tr>
+          <tr>
+            <td><span class="mono">task_biz_links</span></td>
+            <td class="mono" style="font-size:11px;">task_id, biz_id, created_at</td>
+            <td><div class="note">PK: (task_id, biz_id)</div></td>
           </tr>
           <tr>
             <td><span class="mono">biz_sys_links</span></td>
-            <td>biz_id (FK), sys_id (FK)</td>
-            <td><span class="mono">bizSysLinks.json</span></td>
-          </tr>
-          <tr>
-            <td><span class="mono">context_notes</span></td>
-            <td>id, ref_type ("task"|"system"), ref_id, note_type, title, body</td>
-            <td><span class="mono">contextNotes.json</span></td>
+            <td class="mono" style="font-size:11px;">biz_id, sys_id, created_at</td>
+            <td><div class="note">PK: (biz_id, sys_id)</div></td>
           </tr>
           <tr>
             <td><span class="mono">management_policies</span></td>
-            <td>id, title, priority ("critical"|"high")</td>
-            <td><span class="mono">managementPolicies.json</span></td>
+            <td class="mono" style="font-size:11px;">id, title, priority <span style="color:var(--purple);">policy_priority</span>, created_at, updated_at</td>
+            <td></td>
           </tr>
           <tr>
             <td><span class="mono">policy_task_links</span></td>
-            <td>policy_id (FK), task_id (FK)<div class="note">appliesTo.tasks 配列を正規化</div></td>
-            <td><span class="mono">managementPolicies.json</span></td>
+            <td class="mono" style="font-size:11px;">policy_id, task_id, created_at</td>
+            <td><div class="note">PK: (policy_id, task_id)</div></td>
           </tr>
           <tr>
             <td><span class="mono">policy_system_links</span></td>
-            <td>policy_id (FK), system_id (FK)<div class="note">appliesTo.systems 配列を正規化</div></td>
-            <td><span class="mono">managementPolicies.json</span></td>
+            <td class="mono" style="font-size:11px;">policy_id, system_id, created_at</td>
+            <td><div class="note">PK: (policy_id, system_id)</div></td>
+          </tr>
+          <tr>
+            <td><span class="mono">context_notes</span></td>
+            <td class="mono" style="font-size:11px;">id, ref_type <span style="color:var(--purple);">context_note_ref_type</span>, ref_id, note_type <span style="color:var(--purple);">context_note_type</span>, title, body, …</td>
+            <td><div class="note">ref_type = task | system<br>note_type Enum で4種管理</div></td>
           </tr>
         </tbody>
       </table>
     </div>
-
-    <p style="margin-top:12px; font-size:12px; color:var(--muted);">
-      ※ positions.json / candidates.json は採用管理ドメインの旧サンプルデータのため DB 設計の対象外。
-    </p>
   </section>
 
-  <!-- 未決事項 -->
+  <!-- 工夫した点・苦労した点 -->
   <section class="section">
-    <div class="section-title">未決事項</div>
-    <ul class="issue-list">
-      <li class="issue-item">
-        <span class="issue-num">①</span>
-        <div>
-          <strong style="font-size:13px;">biz_items.flags の持ち方</strong>
-          <div style="font-size:12px; color:var(--muted); margin-top:2px;">JSONB で配列のまま持つか、flags 中間テーブルに正規化するか。現在 3 種固定の enum なのでJSONB でも運用は成立する。</div>
-        </div>
-      </li>
-      <li class="issue-item">
-        <span class="issue-num">②</span>
-        <div>
-          <strong style="font-size:13px;">scorecards.axis_scores の列設計</strong>
-          <div style="font-size:12px; color:var(--muted); margin-top:2px;">achievements / thinkingAbility / communication / cultureFit の 4 列をフラット展開するか JSONB 1列にまとめるか。将来の軸追加を見越すと JSONB が柔軟だが、クエリでのソートは 4 列フラットが書きやすい。</div>
-        </div>
-      </li>
-    </ul>
+    <div class="section-title">工夫した点・苦労した点</div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:var(--radius);padding:16px 20px;">
+        <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:6px;">📐 dbdiagram.io でリレーションを図式化</div>
+        <div style="font-size:13px;line-height:1.7;">テーブル数が多くなりリレーション（第7回講義「紐づけ」）も複雑化したため、<a href="https://dbdiagram.io/" target="_blank" rel="noopener">dbdiagram.io</a> を活用して図式化した。視覚的にFKの繋がりを確認しながら設計を進められ、抜け漏れの発見にも役立った。</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--radius);padding:16px 20px;">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px;">🗄️ NeonDB上で直接値を変更して確認する方が効率的</div>
+        <div style="font-size:13px;line-height:1.7;">NeonDB開通後はDB上で値を少し変更して画面の見え方を確認する方が調整しやすかった。テーブルに手を入れるたびSEED経由でのJSONデータの流し込みがやりにくく、SEED停止も検討しているが、テーブルに残事項が残っているため現時点では保留。</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:var(--radius);padding:16px 20px;">
+        <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:6px;">🚀 公開前にクレジットが枯渇 → Copilotと手動で乗り切った</div>
+        <div style="font-size:13px;line-height:1.7;">公開直前にAIクレジットが枯渇してしまい、Copilotに助けてもらいながらほぼ手動でデプロイを完遂。予期せぬ状況でも最終的に公開にこぎつけることができた。</div>
+      </div>
+
+    </div>
   </section>
 
-  <!-- 次のステップ -->
+  <!-- ファビコン -->
   <section class="section">
-    <div class="section-title">次のステップの候補</div>
-    <ul class="steps-list">
-      <li class="step-item">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <strong>グループセッションで口頭説明</strong>
-          <span>「何をDBに入れ、なぜJSONに残すか」をこのページを参照しながら自分の言葉で説明する</span>
+    <div class="section-title">ファビコン</div>
+    <div style="display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <div class="hover-zoom-wrap" data-zoom="img/favi.png">
+          <img src="img/favi.png" style="border-radius:16px;border:2px solid var(--border);">
         </div>
-        <span class="step-badge tag-amber badge">必須</span>
-      </li>
-      <li class="step-item">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <strong>CREATE TABLE SQL の作成</strong>
-          <span>上記の合意を元に Neon / Drizzle のスキーマファイルを書き起こす</span>
+        <div style="font-size:11px;color:var(--muted);text-align:center;">ファビコン<br><span class="mono">favi.png</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <div>
+          <img src="img/flatt.png" style="width:72px;height:72px;border-radius:16px;border:2px solid var(--border);">
         </div>
-        <span class="step-badge tag-blue badge">任意</span>
-      </li>
-      <li class="step-item">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <strong>Neon + Drizzle ORM の実装着手</strong>
-          <span>マイグレーションを流し、既存 JSON 読み込みを DB クエリに差し替える</span>
-        </div>
-        <span class="step-badge tag-blue badge">任意</span>
-      </li>
-    </ul>
+        <div style="font-size:11px;color:var(--muted);text-align:center;">アプリアイコン<br><span class="mono">flatt.png</span></div>
+      </div>
+      <div style="flex:1;min-width:200px;font-size:13px;line-height:1.8;color:var(--text);">
+        当該アプリのファビコンはオリジナル画像を作成して設定した。ブラウザタブやブックマークに表示されるアイコンをアプリ独自のデザインにすることで、プロダクトとしての完成度を高めた。
+      </div>
+    </div>
   </section>
+
+
+
 
 </main>
 
 <footer class="footer">
   <div class="container">
-    Flutter BPR ワークスペース — データ保存設計メモ &nbsp;|&nbsp; grill-me セッション 2026-06-06
+    Flutter BPR ワークスペース — 月次課題提出  |  2026-07-03(Fri)
   </div>
 </footer>
 
+<!-- グローバルモーダル -->
+<div id="zoom-modal" class="zoom-modal" role="dialog" aria-modal="true">
+  <img id="zoom-modal-img" src="" alt="拡大画像">
+</div>
+
+<script>
+(function() {
+  var modal    = document.getElementById('zoom-modal');
+  var modalImg = document.getElementById('zoom-modal-img');
+
+  // data-zoom属性を持つ .hover-zoom-wrap にクリックイベント
+  document.querySelectorAll('.hover-zoom-wrap[data-zoom]').forEach(function(wrap) {
+    wrap.addEventListener('click', function(e) {
+      e.stopPropagation();
+      modalImg.src = wrap.getAttribute('data-zoom');
+      modal.classList.add('is-open');
+    });
+  });
+
+  // オーバーレイクリックで閉じる
+  modal.addEventListener('click', function() {
+    modal.classList.remove('is-open');
+    modalImg.src = '';
+  });
+
+  // Escキーでも閉じる
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      modal.classList.remove('is-open');
+      modalImg.src = '';
+    }
+  });
+})();
+</script>
 </body>
 </html>
